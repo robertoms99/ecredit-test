@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecredit-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecredit-worker
+  template:
+    metadata:
+      labels:
+        app: ecredit-worker
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/your-org/ecredit-bun:latest
+          command: ["bun", "run", "src/jobs/worker.ts"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecredit-secrets
+                  key: database_url
+            - name: REDIS_URL
+              value: redis://redis:6379
