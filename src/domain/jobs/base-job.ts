@@ -5,7 +5,7 @@ import { Job } from "../../infrastructure/jobs/types";
 export abstract class BaseJob<T extends object> implements Job<T> {
   protected boss: PgBoss;
   abstract readonly type: keyof JobTypeMapping;
-  readonly options: SendOptions  = { retryLimit: 3, retryDelay: 1000 };
+  readonly options: SendOptions  = { retryLimit: 5, retryDelay: 5 };
 
   constructor(boss: PgBoss) {
     this.boss = boss;

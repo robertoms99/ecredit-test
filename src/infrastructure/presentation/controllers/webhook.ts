@@ -7,7 +7,7 @@ import { processBankDataSchema } from "../schemas/process-external-bank-data";
 
 const router = new Hono()
 
-router.post("/",
+router.post("/process-bank-data",
   validator('json', (value, c) => {
     const parsed = processBankDataSchema.safeParse(value)
     if (!parsed.success) {

@@ -8,11 +8,6 @@ export const config = {
   server: {
     port: process.env.PORT || 3000,
   },
-  auth: {
-    jwtSecret: process.env.JWT_SECRET || "dev-secret-change-me",
-    issuer: "ecredit",
-    audience: "ecredit-clients",
-  },
   realtime: {
     wsPath: "/ws",
   },

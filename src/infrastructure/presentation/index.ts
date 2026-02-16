@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import creditRequestRouter from "./controllers/credit-request";
+import webhookRouter from "./controllers/webhook";
 import { AppError, internalError } from "../../domain/errors";
 
 
@@ -21,6 +22,7 @@ app.get('/health', (c) => c.json({ status: 'ok' }));
 
 app.basePath("/api")
   .route("/credit-request", creditRequestRouter)
+  .route("/webhook", webhookRouter)
 
 export default app
 

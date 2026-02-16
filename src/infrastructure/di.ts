@@ -19,13 +19,14 @@ import { CreateCreditRequestUseCase } from '../domain/use-cases/create-credit-re
 import { ProcessExternalBankDataUseCase } from '../domain/use-cases/process-external-bank-data';
 import { StatusTransitionJob } from '../domain/jobs/status-transition-job';
 import { JobManager } from './jobs/jobs-manager';
+import { DatabaseNotificationListener } from './db/notification-listener';
 
 
 const creditRequestRepository = new CreditRequestRepository(db);
 const requestStatusRepository = new RequestStatusRepository(db);
 const bankInfoRepository = new BankInfoRepository(db);
 
-const webhookCallbackUrl = `http://localhost:${config.server.port}/api/webhook`;
+const webhookCallbackUrl = `http://localhost:${config.server.port}/api/webhook/process-bank-data`;
 const countryStrategies = createCountryStrategies(webhookCallbackUrl);
 const countryStrategyRegistry = new CountryStrategyRegistry();
 
@@ -43,16 +44,14 @@ const createdTransition = new CreatedStatusTransition(
   countryStrategyRegistry,
   bankInfoRepository,
   creditRequestRepository,
-  requestStatusRepository,
-  jobManager
+  requestStatusRepository
 );
 
 const evaluatingTransition = new EvaluatingStatusTransition(
   countryStrategyRegistry,
   bankInfoRepository,
   creditRequestRepository,
-  requestStatusRepository,
-  jobManager
+  requestStatusRepository
 );
 
 statusTransitionRegistry.register(createdTransition);
@@ -66,22 +65,38 @@ jobManager.register(
 
 await jobManager.start();
 
+const dbNotificationListener = new DatabaseNotificationListener(
+  connectionString,
+  jobManager
+);
+
+await dbNotificationListener.start();
+
 export const createCreditRequestUseCase = new CreateCreditRequestUseCase(
   creditRequestRepository,
   requestStatusRepository,
-  countryStrategyRegistry,
-  jobManager
+  countryStrategyRegistry
 );
 
 export const processExternalBankDataUseCase = new ProcessExternalBankDataUseCase(
   creditRequestRepository,
   requestStatusRepository,
   bankInfoRepository,
-  countryStrategyRegistry,
-  jobManager
+  countryStrategyRegistry
 );
 
-// TODO: Implement these use cases
-export const getCreditRequestUseCase = createCreditRequestUseCase; // change this
-export const listCreditRequestsUseCase = createCreditRequestUseCase; // change this
-export const updateCreditRequestStatusUseCase = createCreditRequestUseCase; // change this
+export const getCreditRequestUseCase = createCreditRequestUseCase;
+export const listCreditRequestsUseCase = createCreditRequestUseCase;
+export const updateCreditRequestStatusUseCase = createCreditRequestUseCase;
+
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM, shutting down gracefully...');
+  await dbNotificationListener.stop();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('Received SIGINT, shutting down gracefully...');
+  await dbNotificationListener.stop();
+  process.exit(0);
+});

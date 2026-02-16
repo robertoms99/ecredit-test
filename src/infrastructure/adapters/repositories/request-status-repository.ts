@@ -3,11 +3,22 @@ import { RequestStatus, RequestStatusCodes } from "../../../domain/entities/requ
 import { IRequestStatusRepository } from "../../../domain/ports/repositories/request-status-repository";
 import { requestStatuses } from "../../db/schemas";
 import { DBClient } from "../../db/types";
+import { AppError } from "../../../domain/errors/app-error";
 
 export class RequestStatusRepository implements IRequestStatusRepository {
   public constructor(private readonly db: DBClient) { }
 
   async getStatusByCode(code:RequestStatusCodes ): Promise<RequestStatus> {
-    return await this.db.select().from(requestStatuses).where(eq(requestStatuses.code, code)).then((result) => result[0]);
+    try {
+      const result = await this.db.select().from(requestStatuses).where(eq(requestStatuses.code, code));
+      return result[0];
+    } catch (error: any) {
+
+
+      throw new AppError('DATABASE_ERROR', 'Failed to fetch request status', {
+        code,
+        error: error.message,
+      });
+    }
   }
 }

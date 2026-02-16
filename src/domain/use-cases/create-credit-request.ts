@@ -2,42 +2,25 @@ import type { ICreditRequestRepository } from '../ports/repositories/credit-requ
 import type { IRequestStatusRepository } from '../ports/repositories/request-status-repository';
 import type { ICreateCreditRequestUseCaseInput } from '../ports/use-cases/create-credit-request';
 import type { CreditRequest, NewCreditRequest } from '../entities/credit-request';
-import type { IJobManager } from '../ports/jobs';
 import type { CountryStrategyRegistry } from '../strategies/country/country-strategy.registry';
 import { RequestStatusCodes } from '../entities';
 import { AppError } from '../errors/app-error';
 
-/**
- * Create Credit Request Use Case
- *
- * This use case handles the creation of new credit requests with country-specific validation.
- *
- * Flow:
- * 1. Validates country is supported
- * 2. Validates document ID using country-specific validator
- * 3. Validates basic fields (name, amount)
- * 4. Checks amount is within country limit
- * 5. Creates credit request with CREATED status
- * 6. Emits job for status transition (which will fetch bank data)
- *
- * Country-specific logic is delegated to CountryStrategy pattern - no conditionals!
- */
 export class CreateCreditRequestUseCase {
   private readonly initialRequestStatusCode: RequestStatusCodes = RequestStatusCodes.CREATED;
 
   constructor(
     private readonly creditRequestRepository: ICreditRequestRepository,
     private readonly requestStatusRepository: IRequestStatusRepository,
-    private readonly countryStrategyRegistry: CountryStrategyRegistry,
-    private readonly jobManager: IJobManager
+    private readonly countryStrategyRegistry: CountryStrategyRegistry
   ) {}
 
   async execute(input: ICreateCreditRequestUseCaseInput): Promise<CreditRequest> {
     if (!this.countryStrategyRegistry.isSupported(input.country)) {
       throw new AppError(
-        'VALIDATION_FAILED',
+        'COUNTRY_NOT_SUPPORTED',
         `Country '${input.country}' is not supported. Available countries: ${this.countryStrategyRegistry.getSupportedCountries().join(', ')}`,
-        { country: input.country }
+        { country: input.country, availableCountries: this.countryStrategyRegistry.getSupportedCountries() }
       );
     }
 
@@ -49,7 +32,7 @@ export class CreateCreditRequestUseCase {
 
     if (!documentValidation.isValid) {
       throw new AppError(
-        'VALIDATION_FAILED',
+        'DOCUMENT_VALIDATION_FAILED',
         `Invalid ${documentValidator.getDocumentType()}: ${documentValidation.errors?.join(', ')}`,
         { documentId: input.documentId, errors: documentValidation.errors }
       );
@@ -81,12 +64,6 @@ export class CreateCreditRequestUseCase {
     };
 
     const createdCreditRequest = await this.creditRequestRepository.create(newCreditRequest);
-
-    await this.jobManager.emit('credit_request_status_change', {
-      credit_request_id: createdCreditRequest.id,
-      request_status_id: requestStatus.id,
-      request_status_code: this.initialRequestStatusCode,
-    });
 
     return createdCreditRequest;
   }
