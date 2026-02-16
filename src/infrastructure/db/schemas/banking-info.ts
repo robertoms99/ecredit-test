@@ -4,13 +4,10 @@ import { creditRequests } from './credit-requests';
 
 export const bankingInfo = pgTable('banking_info', {
   id: uuid('id').defaultRandom().primaryKey(),
+  externalRequestId: uuid('external_request_id').notNull(),
   providerName: varchar('provider_name', { length: 255 }).notNull(),
   providerResponseAt: timestamp('provider_response_at', { withTimezone: true }),
   financialData: jsonb('financial_data').notNull().default({}),
-  creditScore: integer('credit_score'),
-  totalDebt: numeric('total_debt'),
-  availableCredit: numeric('available_credit'),
-  riskLevel: varchar('risk_level', { length: 64 }),
   fetchStatus: varchar('fetch_status', { length: 64 }).notNull().default('pending'),
   errorMessage: text('error_message'),
   retryCount: integer('retry_count').notNull().default(0),

@@ -14,4 +14,8 @@ export class CreditRequestRepository implements ICreditRequestRepository{
   async findById(id: string): Promise<CreditRequest | null> {
     return await this.db.select().from(schema.creditRequests).where(eq(schema.creditRequests.id, id)).then((result) => result[0]);
   }
+
+  async update(id: string, request: Partial<CreditRequest>): Promise<CreditRequest> {
+    return await this.db.update(schema.creditRequests).set(request).where(eq(schema.creditRequests.id, id)).returning().then((result) => result[0]);
+  }
 }

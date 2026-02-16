@@ -1,15 +1,15 @@
 import { AppError } from "../errors";
 import { CountryRules } from "../ports/rules";
-import { ICreateCreditRequestUseCase } from "../ports/use-cases/create-credit-request";
+import { ICreateCreditRequestUseCaseInput } from "../ports/use-cases/create-credit-request";
 import { IValidator } from "../ports/validator";
 
-export class CreateCreditRequestValidator implements IValidator<ICreateCreditRequestUseCase> {
+export class CreateCreditRequestValidator implements IValidator<ICreateCreditRequestUseCaseInput> {
   private  countryRule!: CountryRules;
   constructor(
     private readonly countriesRules: CountryRules[],
   ) {}
 
-  async validate(value: ICreateCreditRequestUseCase): Promise<void> {
+  async validate(value: ICreateCreditRequestUseCaseInput): Promise<void> {
     const countryRule = this.countriesRules.find(rule => rule.getCountryCode() === value.country);
 
     if (!countryRule) {

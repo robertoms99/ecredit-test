@@ -1,7 +1,7 @@
 import { CreditRequest, NewCreditRequest } from "../../entities/credit-request";
 
-export type ICreateCreditRequestUseCase = Omit<NewCreditRequest, 'statusId'>;
+export type ICreateCreditRequestUseCaseInput = Omit<NewCreditRequest, 'statusId'>;
 
 export interface CreateCreditRequestUseCase {
-  execute(request: ICreateCreditRequestUseCase): Promise<CreditRequest>;
+  execute(request: ICreateCreditRequestUseCaseInput): Promise<CreditRequest>;
 }

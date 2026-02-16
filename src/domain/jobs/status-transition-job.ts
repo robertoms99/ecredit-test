@@ -6,6 +6,7 @@ import { RequestStatusCodes } from "../entities";
 import { CreditRequestRepository } from "../../infrastructure/adapters/repositories/credit-request-repository";
 import { AppError } from "../errors";
 import { BankDataProviderRegistry } from "../ports/strategies/bank-data-provider-registry";
+import { StatusTransitionRegistry } from "../ports/strategies/status-transition-registry";
 
 export class StatusTransitionJob extends BaseJob<{credit_request_id: string, request_status_id: string, request_status_code: RequestStatusCodes}> {
   readonly type: keyof JobTypeMapping = "credit_request_status_change";
@@ -16,7 +17,7 @@ export class StatusTransitionJob extends BaseJob<{credit_request_id: string, req
 
   public constructor(boss: PgBoss,
     private readonly creditRequestRepository: CreditRequestRepository,
-    private readonly bankDataProviderRegistry: BankDataProviderRegistry
+    private readonly statusTransitionStrategyRegistry: StatusTransitionRegistry
   ) {
     super(boss);
   }
@@ -35,9 +36,9 @@ export class StatusTransitionJob extends BaseJob<{credit_request_id: string, req
           throw new AppError('VALIDATION_FAILED', "Invalid status transition");
         }
 
-        const bankDataProvider = this.bankDataProviderRegistry.get(creditRequest.country)
+        const statusTransitionStrategy = this.statusTransitionStrategyRegistry.get(creditRequest.country, request_status_code )
 
-        await bankDataProvider.fetchBankDataByDocumentId(creditRequest.documentId)
+        await statusTransitionStrategy.execute(creditRequest)
 
       } catch (error) {
         console.error(error)

@@ -1,7 +1,8 @@
 import { requestStatuses } from "../../infrastructure/db/schemas";
 
 export enum RequestStatusCodes {
-  PENDING = 'PENDING',
+  CREATED = 'CREATED',
+  PENDING_FOR_BANK_DATA = 'PENDING_FOR_BANK_DATA',
   EVALUATING = 'EVALUATING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
