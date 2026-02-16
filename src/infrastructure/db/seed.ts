@@ -1,12 +1,14 @@
+import { RequestStatusCodes } from '../../domain/entities';
 import { db, schema } from './client';
 import { eq } from 'drizzle-orm';
 
 async function seed() {
+  RequestStatusCodes
   const statuses = [
-    { code: 'submitted', name: 'Submitted', description: 'Solicitud creada', isFinal: false, displayOrder: 1 },
-    { code: 'under_review', name: 'Under Review', description: 'En revisión', isFinal: false, displayOrder: 2 },
-    { code: 'approved', name: 'Approved', description: 'Aprobada', isFinal: true, displayOrder: 3 },
-    { code: 'rejected', name: 'Rejected', description: 'Rechazada', isFinal: true, displayOrder: 4 },
+    { code: RequestStatusCodes.PENDING, name: 'Pendiente', description: 'Solicitud creada', isFinal: false, displayOrder: 1 },
+    { code: RequestStatusCodes.EVALUATING, name: 'Esta siendo evaluada', description: 'En revisión', isFinal: false, displayOrder: 2 },
+    { code: RequestStatusCodes.APPROVED, name: 'Aprobada', description: 'Aprobada', isFinal: true, displayOrder: 3 },
+    { code: RequestStatusCodes.REJECTED, name: 'Rechazada', description: 'Rechazada', isFinal: true, displayOrder: 4 },
   ];
   for (const s of statuses) {
     await db.insert(schema.requestStatuses)

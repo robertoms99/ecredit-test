@@ -8,6 +8,6 @@ export class RequestStatusRepository implements IRequestStatusRepository {
   public constructor(private readonly db: DBClient) { }
 
   async getStatusByCode(code:RequestStatusCodes ): Promise<RequestStatus> {
-    return await this.db.select().from(requestStatuses).where(eq(requestStatuses.code, code))
+    return await this.db.select().from(requestStatuses).where(eq(requestStatuses.code, code)).then((result) => result[0]);
   }
 }

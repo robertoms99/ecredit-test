@@ -7,7 +7,7 @@ export class CreditRequestRepository implements ICreditRequestRepository{
   public constructor(private readonly db: DBClient) { }
 
   async create(creditRequest: NewCreditRequest): Promise<CreditRequest> {
-    return await this.db.insert(schema.creditRequests).values(creditRequest)
+    return await this.db.insert(schema.creditRequests).values(creditRequest).returning().then((result) => result[0]);
   }
 
   async findById(id: string): Promise<CreditRequest | null> {

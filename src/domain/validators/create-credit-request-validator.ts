@@ -1,3 +1,4 @@
+import { AppError } from "../errors";
 import { CountryRules } from "../ports/rules";
 import { ICreateCreditRequestUseCase } from "../ports/use-cases/create-credit-request";
 import { IValidator } from "../ports/validator";
@@ -12,7 +13,7 @@ export class CreateCreditRequestValidator implements IValidator<ICreateCreditReq
     const countryRule = this.countriesRules.find(rule => rule.getCountryCode() === value.country);
 
     if (!countryRule) {
-      throw new Error('Invalid country');
+      throw new AppError('VALIDATION_FAILED', 'País no válido');
     }
 
     this.countryRule = countryRule
@@ -25,13 +26,13 @@ export class CreateCreditRequestValidator implements IValidator<ICreateCreditReq
 
   private validateName(name: string): void {
     if (!name || name.length < 2 || name.length > 100) {
-      throw new Error('Invalid name');
+      throw new AppError('VALIDATION_FAILED', "Intenta escribir un nombre valido");
     }
   }
 
   private async validateRequestedAmount(amount: number): Promise<void> {
     if (!amount || amount < 1 || amount > await this.countryRule.getAmountLimit()) {
-      throw new Error('Invalid amount');
+      throw new AppError('VALIDATION_FAILED', 'Cantidad solicitada no es valida');
     }
   }
 

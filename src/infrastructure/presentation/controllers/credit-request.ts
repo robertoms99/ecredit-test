@@ -3,6 +3,7 @@ import { validator } from 'hono/validator'
 import { createCreditRequestUseCase, getCreditRequestUseCase, listCreditRequestsUseCase, updateCreditRequestStatusUseCase } from "../../di";
 import * as z from 'zod'
 import { createCreditRequestSchema } from "../schemas/create-credit-request";
+import { AppError, validationError, notFoundError } from '../../../domain/errors';
 
 const router = new Hono()
 
@@ -10,7 +11,8 @@ router.post("/",
   validator('json', (value, c) => {
     const parsed = createCreditRequestSchema.safeParse(value)
     if (!parsed.success) {
-      return c.json(parsed.error, 400);
+      const details = parsed.error.flatten();
+      throw validationError('Schema enviado es invalido', details);
     }
     return parsed.data
   })
@@ -21,11 +23,17 @@ router.post("/",
       const saved = await createCreditRequestUseCase.execute(body);
       return c.json(saved, 201);
     } catch (e: any) {
-      return c.json({ error: e.message }, 400);
+      if (e instanceof AppError) {
+        return new Response(JSON.stringify(e.toResponse()), { status: e.status, headers: { 'Content-Type': 'application/json' } });
+      }
+      throw e;
     }
   } catch (error) {
     console.error(error);
-    return c.json({ error: "Body invalido" }, 400);
+    if (error instanceof AppError) {
+      return new Response(JSON.stringify(error.toResponse()), { status: error.status, headers: { 'Content-Type': 'application/json' } });
+    }
+    throw error;
   }
 });
 
@@ -33,7 +41,7 @@ router.post("/",
 router.get('/:id', async (c) => {
   const id = c.req.param('id');
   const req = await getCreditRequestUseCase.execute(id as any);
-  if (!req) return c.json({ error: 'Not found' }, 404);
+  if (!req) throw notFoundError('Credit request not found');
   return c.json(req);
 });
 
@@ -51,10 +59,13 @@ router.put('/:id/status', async (c) => {
   const { status } = await c.req.json();
   try {
     const updated = await updateCreditRequestStatusUseCase.execute(id as any);
-    if (!updated) return c.json({ error: 'Not found' }, 404);
+    if (!updated) throw notFoundError('Credit request not found');
     return c.json(updated);
   } catch (e: any) {
-    return c.json({ error: e.message }, 400);
+    if (e instanceof AppError) {
+      return new Response(JSON.stringify(e.toResponse()), { status: e.status, headers: { 'Content-Type': 'application/json' } });
+    }
+    throw e;
   }
 });
 

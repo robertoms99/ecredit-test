@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun db:migrate & bun db:seed && bun run src/server.ts",
+    "dev": "bun db:migrate && bun db:seed && bun run --watch src/server.ts",
     "db:migrations:generate": "bun x drizzle-kit generate --config src/infrastructure/db/drizzle.config.ts",
     "db:migrate": "bun run src/infrastructure/db/migrate.ts",
     "db:seed": "bun run src/infrastructure/db/seed.ts"
