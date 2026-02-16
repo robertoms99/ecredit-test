@@ -25,29 +25,6 @@ export class MexicoDocumentValidator implements IDocumentValidator {
       errors.push('CURP format is invalid. Expected format: AAAA######HHHHH##');
     }
 
-    if (curp.length >= 10) {
-      const yearStr = curp.substring(4, 6);
-      const monthStr = curp.substring(6, 8);
-      const dayStr = curp.substring(8, 10);
-
-      const year = parseInt(yearStr, 10);
-      const month = parseInt(monthStr, 10);
-      const day = parseInt(dayStr, 10);
-
-      if (month < 1 || month > 12) {
-        errors.push('Invalid month in CURP date');
-      }
-
-      if (day < 1 || day > 31) {
-        errors.push('Invalid day in CURP date');
-      }
-
-      const currentYear = new Date().getFullYear() % 100;
-      if (year > currentYear + 10) {
-        errors.push('Invalid year in CURP date');
-      }
-    }
-
     if (curp.length > 10) {
       const gender = curp[10];
       if (gender !== 'H' && gender !== 'M') {

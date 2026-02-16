@@ -8,7 +8,7 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
 
     if (!externalRequestId || typeof externalRequestId !== 'string') {
       throw new AppError(
-        'VALIDATION_FAILED',
+        'WEBHOOK_VALIDATION_FAILED',
         'External request ID is required and must be a string',
         { externalRequestId }
       );
@@ -16,56 +16,60 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
 
     if (!payload || typeof payload !== 'object') {
       throw new AppError(
-        'VALIDATION_FAILED',
+        'WEBHOOK_VALIDATION_FAILED',
         'Payload is required and must be an object',
         { payload }
       );
     }
 
-    const requiredFields = ['debt', 'balance', 'risk_score'];
-    const missingFields = requiredFields.filter(field => !(field in payload));
-
-    if (missingFields.length > 0) {
+    if (!payload.datacredito || typeof payload.datacredito !== 'object') {
       throw new AppError(
-        'VALIDATION_FAILED',
-        `Missing required fields in Colombia provider payload: ${missingFields.join(', ')}`,
-        { missingFields, payload }
+        'WEBHOOK_VALIDATION_FAILED',
+        'Missing datacredito in Colombia provider payload',
+        { payload }
       );
     }
 
-    if (typeof payload.debt !== 'number' || payload.debt < 0) {
+    if (!payload.datos_financieros || typeof payload.datos_financieros !== 'object') {
       throw new AppError(
-        'VALIDATION_FAILED',
-        'Debt must be a non-negative number',
-        { debt: payload.debt }
+        'WEBHOOK_VALIDATION_FAILED',
+        'Missing datos_financieros in Colombia provider payload',
+        { payload }
       );
     }
 
-    if (typeof payload.balance !== 'number') {
+    const datacredito = payload.datacredito;
+    const datosFinancieros = payload.datos_financieros;
+
+    if (typeof datacredito.score !== 'number') {
       throw new AppError(
-        'VALIDATION_FAILED',
-        'Balance must be a number',
-        { balance: payload.balance }
+        'WEBHOOK_VALIDATION_FAILED',
+        'datacredito.score must be a number',
+        { score: datacredito.score }
       );
     }
 
-    if (
-      typeof payload.risk_score !== 'number' ||
-      payload.risk_score < 0 ||
-      payload.risk_score > 1000
-    ) {
+    if (typeof datosFinancieros.ingresos_mensuales !== 'number' || datosFinancieros.ingresos_mensuales < 0) {
       throw new AppError(
-        'VALIDATION_FAILED',
-        'Risk score must be a number between 0 and 1000',
-        { risk_score: payload.risk_score }
+        'WEBHOOK_VALIDATION_FAILED',
+        'ingresos_mensuales must be a non-negative number',
+        { ingresos_mensuales: datosFinancieros.ingresos_mensuales }
       );
     }
 
-    if ('account_status' in payload && typeof payload.account_status !== 'string') {
+    if (typeof datosFinancieros.obligaciones_mensuales !== 'number' || datosFinancieros.obligaciones_mensuales < 0) {
       throw new AppError(
-        'VALIDATION_FAILED',
-        'Account status must be a string if provided',
-        { account_status: payload.account_status }
+        'WEBHOOK_VALIDATION_FAILED',
+        'obligaciones_mensuales must be a non-negative number',
+        { obligaciones_mensuales: datosFinancieros.obligaciones_mensuales }
+      );
+    }
+
+    if (typeof datosFinancieros.balance_cuentas !== 'number') {
+      throw new AppError(
+        'WEBHOOK_VALIDATION_FAILED',
+        'balance_cuentas must be a number',
+        { balance_cuentas: datosFinancieros.balance_cuentas }
       );
     }
 

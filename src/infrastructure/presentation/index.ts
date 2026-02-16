@@ -25,26 +25,3 @@ app.basePath("/api")
   .route("/webhook", webhookRouter)
 
 export default app
-
-
-/*
-// Simple auth middleware
-app.use('/api/*', async (c, next) => {
-  const auth = c.req.header('authorization');
-  if (!auth || !auth.startsWith('Bearer ')) return c.json({ error: 'Unauthorized' }, 401);
-  try {
-    const token = auth.substring(7);
-    // Dev bypass: allow token 'dev' in non-production
-    const isDevBypass = token === 'dev' && process.env.NODE_ENV !== 'production';
-    const payload = isDevBypass ? { sub: 'dev-user', role: 'admin' } : await verifyJwt(token);
-    c.set('user', payload);
-    await next();
-  } catch (e) {
-    return c.json({ error: 'Invalid token' }, 401);
-  }
-}); // WebSocket upgrade route
-app.get(config.realtime.wsPath, (c) => {
-  const ok = c.env?.upgrade?.(c.req);
-  if (!ok) return c.text('Upgrade required', 426);
-});
- */

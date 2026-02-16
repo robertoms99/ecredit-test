@@ -29,32 +29,11 @@ export class ColombiaDocumentValidator implements IDocumentValidator {
       errors.push('CC cannot be all zeros');
     }
 
-    if (this.isSequential(cc)) {
-      errors.push('CC appears to be invalid (sequential pattern)');
-    }
-
     return {
       isValid: errors.length === 0,
       errors: errors.length > 0 ? errors : undefined,
     };
   }
 
-  private isSequential(num: string): boolean {
-    if (num.length < 6) return false;
 
-    let ascending = true;
-    let descending = true;
-
-    for (let i = 1; i < num.length; i++) {
-      const curr = parseInt(num[i], 10);
-      const prev = parseInt(num[i - 1], 10);
-
-      if (curr !== prev + 1) ascending = false;
-      if (curr !== prev - 1) descending = false;
-
-      if (!ascending && !descending) break;
-    }
-
-    return ascending || descending;
-  }
 }

@@ -8,7 +8,7 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
 
     if (!externalRequestId || typeof externalRequestId !== 'string') {
       throw new AppError(
-        'VALIDATION_FAILED',
+        'WEBHOOK_VALIDATION_FAILED',
         'External request ID is required and must be a string',
         { externalRequestId }
       );
@@ -16,56 +16,60 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
 
     if (!payload || typeof payload !== 'object') {
       throw new AppError(
-        'VALIDATION_FAILED',
+        'WEBHOOK_VALIDATION_FAILED',
         'Payload is required and must be an object',
         { payload }
       );
     }
 
-    const requiredFields = ['debt', 'balance', 'risk_score'];
-    const missingFields = requiredFields.filter(field => !(field in payload));
-
-    if (missingFields.length > 0) {
+    if (!payload.informacion_crediticia || typeof payload.informacion_crediticia !== 'object') {
       throw new AppError(
-        'VALIDATION_FAILED',
-        `Missing required fields in Mexico provider payload: ${missingFields.join(', ')}`,
-        { missingFields, payload }
+        'WEBHOOK_VALIDATION_FAILED',
+        'Missing informacion_crediticia in Mexico provider payload',
+        { payload }
       );
     }
 
-    if (typeof payload.debt !== 'number' || payload.debt < 0) {
+    if (!payload.informacion_financiera || typeof payload.informacion_financiera !== 'object') {
       throw new AppError(
-        'VALIDATION_FAILED',
-        'Debt must be a non-negative number',
-        { debt: payload.debt }
+        'WEBHOOK_VALIDATION_FAILED',
+        'Missing informacion_financiera in Mexico provider payload',
+        { payload }
       );
     }
 
-    if (typeof payload.balance !== 'number') {
+    const creditInfo = payload.informacion_crediticia;
+    const finInfo = payload.informacion_financiera;
+
+    if (typeof creditInfo.calificacion_buro !== 'number') {
       throw new AppError(
-        'VALIDATION_FAILED',
-        'Balance must be a number',
-        { balance: payload.balance }
+        'WEBHOOK_VALIDATION_FAILED',
+        'calificacion_buro must be a number',
+        { calificacion_buro: creditInfo.calificacion_buro }
       );
     }
 
-    if (
-      typeof payload.risk_score !== 'number' ||
-      payload.risk_score < 0 ||
-      payload.risk_score > 1000
-    ) {
+    if (typeof finInfo.ingreso_mensual_mxn !== 'number' || finInfo.ingreso_mensual_mxn < 0) {
       throw new AppError(
-        'VALIDATION_FAILED',
-        'Risk score must be a number between 0 and 1000',
-        { risk_score: payload.risk_score }
+        'WEBHOOK_VALIDATION_FAILED',
+        'ingreso_mensual_mxn must be a non-negative number',
+        { ingreso_mensual_mxn: finInfo.ingreso_mensual_mxn }
       );
     }
 
-    if ('account_status' in payload && typeof payload.account_status !== 'string') {
+    if (typeof finInfo.deuda_mensual_mxn !== 'number' || finInfo.deuda_mensual_mxn < 0) {
       throw new AppError(
-        'VALIDATION_FAILED',
-        'Account status must be a string if provided',
-        { account_status: payload.account_status }
+        'WEBHOOK_VALIDATION_FAILED',
+        'deuda_mensual_mxn must be a non-negative number',
+        { deuda_mensual_mxn: finInfo.deuda_mensual_mxn }
+      );
+    }
+
+    if (typeof finInfo.saldo_cuenta_mxn !== 'number') {
+      throw new AppError(
+        'WEBHOOK_VALIDATION_FAILED',
+        'saldo_cuenta_mxn must be a number',
+        { saldo_cuenta_mxn: finInfo.saldo_cuenta_mxn }
       );
     }
 

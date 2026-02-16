@@ -11,10 +11,10 @@ export class ColombiaCreditEvaluator implements ICreditEvaluator {
   ): Promise<CreditEvaluationResult> {
     const financialData = bankingInfo.financialData as any;
 
-    const currentDebt = financialData?.debt ?? 0;
-    const accountBalance = financialData?.balance ?? 0;
-    const creditScore = financialData?.risk_score ?? 0;
-    const monthlyIncome = creditRequest.monthlyIncome;
+    const creditScore = financialData?.datacredito?.score ?? 0;
+    const currentDebt = financialData?.datos_financieros?.obligaciones_mensuales ?? 0;
+    const accountBalance = financialData?.datos_financieros?.balance_cuentas ?? 0;
+    const monthlyIncome = financialData?.datos_financieros?.ingresos_mensuales ?? creditRequest.monthlyIncome;
     const requestedAmount = creditRequest.requestedAmount;
 
     const debtToIncomeRatio = monthlyIncome > 0 ? currentDebt / monthlyIncome : Infinity;

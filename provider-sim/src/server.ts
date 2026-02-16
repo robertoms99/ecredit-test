@@ -4,55 +4,63 @@ import { randomUUID } from 'crypto';
 const app = express();
 app.use(express.json());
 
-// Test users with predefined profiles
 const TEST_USERS = {
   MX: {
-    // Good profile - Should be APPROVED
     'GOMC860101HDFRRA09': {
-      full_name: 'Good Mexico User',
-      credit_score: 750,
-      monthly_income: 50000,
-      monthly_debt: 15000, // DTI = 30%
-      account_balance: 100000,
-      employment_status: 'EMPLOYED',
-      years_in_job: 5,
+      nombre_completo: 'Good Mexico User',
+      calificacion_buro: 750,
+      ingreso_mensual_mxn: 50000,
+      deuda_mensual_mxn: 15000,
+      saldo_cuenta_mxn: 100000,
+      estatus_laboral: 'EMPLEADO_FORMAL',
+      antiguedad_laboral_meses: 60,
+      tiene_vivienda_propia: true,
+      numero_tarjetas_credito: 2,
+      historial_pagos_ultimos_12_meses: 'EXCELENTE',
     },
-    // Bad profile - Should be REJECTED
     'BAPC901215MDFRRS03': {
-      full_name: 'Bad Mexico User',
-      credit_score: 450, // Below 600 minimum
-      monthly_income: 20000,
-      monthly_debt: 12000, // DTI = 60%
-      account_balance: -5000,
-      employment_status: 'UNEMPLOYED',
-      years_in_job: 0,
+      nombre_completo: 'Bad Mexico User',
+      calificacion_buro: 450,
+      ingreso_mensual_mxn: 20000,
+      deuda_mensual_mxn: 12000,
+      saldo_cuenta_mxn: -5000,
+      estatus_laboral: 'DESEMPLEADO',
+      antiguedad_laboral_meses: 0,
+      tiene_vivienda_propia: false,
+      numero_tarjetas_credito: 0,
+      historial_pagos_ultimos_12_meses: 'MALO',
     },
   },
   CO: {
-    // Good profile - Should be APPROVED
     '1234567890': {
-      full_name: 'Good Colombia User',
-      credit_score: 680,
-      monthly_income: 5000000,
-      monthly_debt: 1500000, // DTI = 30%
-      account_balance: 8000000,
-      employment_status: 'EMPLOYED',
-      years_in_job: 3,
+      nombre: 'Good Colombia User',
+      score_datacredito: 680,
+      ingresos_mensuales: 5000000,
+      obligaciones_mensuales: 1500000,
+      balance_cuentas: 8000000,
+      tipo_contrato: 'INDEFINIDO',
+      meses_antiguedad_trabajo: 36,
+      propietario_vivienda: 'SI',
+      cantidad_creditos_activos: 1,
+      comportamiento_pago: 'AL_DIA',
+      categoria_riesgo: 'A',
     },
-    // Bad profile - Should be REJECTED
     '9876543210': {
-      full_name: 'Bad Colombia User',
-      credit_score: 400, // Below 550 minimum
-      monthly_income: 2000000,
-      monthly_debt: 1500000, // DTI = 75%
-      account_balance: -100000,
-      employment_status: 'SELF_EMPLOYED',
-      years_in_job: 1,
+      nombre: 'Bad Colombia User',
+      score_datacredito: 400,
+      ingresos_mensuales: 2000000,
+      obligaciones_mensuales: 1500000,
+      balance_cuentas: -100000,
+      tipo_contrato: 'PRESTACION_SERVICIOS',
+      meses_antiguedad_trabajo: 12,
+      propietario_vivienda: 'NO',
+      cantidad_creditos_activos: 4,
+      comportamiento_pago: 'MORA_MAYOR_60_DIAS',
+      categoria_riesgo: 'D',
     },
   },
 };
 
-// In-memory storage for pending requests
 interface PendingRequest {
   requestId: string;
   documentId: string;
@@ -64,10 +72,6 @@ interface PendingRequest {
 
 const pendingRequests = new Map<string, PendingRequest>();
 
-/**
- * Mexico Provider Endpoint
- * POST /providers/mx
- */
 app.post('/providers/mx', (req: Request, res: Response) => {
   const { document_id, credit_request_id, callback_url } = req.body;
 
@@ -77,18 +81,15 @@ app.post('/providers/mx', (req: Request, res: Response) => {
     });
   }
 
-  // Validate document exists in test users
   if (!TEST_USERS.MX[document_id as keyof typeof TEST_USERS.MX]) {
     return res.status(404).json({
-      error: `Document ID ${document_id} not found in Mexico test users`,
+      error: `CURP ${document_id} not found in Mexico test users`,
       available_test_users: Object.keys(TEST_USERS.MX),
     });
   }
 
-  // Generate external request ID (UUID as real providers would)
   const requestId = randomUUID();
 
-  // Store pending request
   pendingRequests.set(requestId, {
     requestId,
     documentId: document_id,
@@ -102,25 +103,19 @@ app.post('/providers/mx', (req: Request, res: Response) => {
   console.log(`[MX Provider] Generated external request ID: ${requestId}`);
   console.log(`[MX Provider] Will callback to: ${callback_url}`);
 
-  // Simulate async processing (2-8 seconds delay)
   const delay = Math.floor(Math.random() * 6000) + 2000;
   setTimeout(() => {
     processCallback(requestId);
   }, delay);
 
-  // Respond immediately with request ID
   res.status(202).json({
     request_id: requestId,
     status: 'PENDING',
-    message: 'Request accepted, data will be sent to callback URL',
+    message: 'Solicitud aceptada, los datos se enviarán al webhook',
     estimated_time_seconds: Math.floor(delay / 1000),
   });
 });
 
-/**
- * Colombia Provider Endpoint
- * POST /providers/co
- */
 app.post('/providers/co', (req: Request, res: Response) => {
   const { document_id, credit_request_id, callback_url } = req.body;
 
@@ -130,18 +125,15 @@ app.post('/providers/co', (req: Request, res: Response) => {
     });
   }
 
-  // Validate document exists in test users
   if (!TEST_USERS.CO[document_id as keyof typeof TEST_USERS.CO]) {
     return res.status(404).json({
-      error: `Document ID ${document_id} not found in Colombia test users`,
+      error: `CC ${document_id} not found in Colombia test users`,
       available_test_users: Object.keys(TEST_USERS.CO),
     });
   }
 
-  // Generate external request ID (UUID as real providers would)
   const requestId = randomUUID();
 
-  // Store pending request
   pendingRequests.set(requestId, {
     requestId,
     documentId: document_id,
@@ -155,24 +147,19 @@ app.post('/providers/co', (req: Request, res: Response) => {
   console.log(`[CO Provider] Generated external request ID: ${requestId}`);
   console.log(`[CO Provider] Will callback to: ${callback_url}`);
 
-  // Simulate async processing (2-8 seconds delay)
   const delay = Math.floor(Math.random() * 6000) + 2000;
   setTimeout(() => {
     processCallback(requestId);
   }, delay);
 
-  // Respond immediately with request ID
   res.status(202).json({
     request_id: requestId,
     status: 'PENDING',
-    message: 'Request accepted, data will be sent to callback URL',
+    message: 'Solicitud aceptada, los datos se enviarán al webhook',
     estimated_time_seconds: Math.floor(delay / 1000),
   });
 });
 
-/**
- * Process callback - sends financial data to the application's webhook
- */
 async function processCallback(requestId: string) {
   const request = pendingRequests.get(requestId);
   if (!request) {
@@ -192,23 +179,75 @@ async function processCallback(requestId: string) {
     return;
   }
 
-  const payload = {
-    request_id: requestId,
-    document_id: request.documentId,
-    full_name: userProfile.full_name,
-    credit_score: userProfile.credit_score,
-    monthly_income: userProfile.monthly_income,
-    monthly_debt: userProfile.monthly_debt,
-    account_balance: userProfile.account_balance,
-    employment_status: userProfile.employment_status,
-    years_in_job: userProfile.years_in_job,
-    timestamp: new Date().toISOString(),
-  };
+  let payload: any;
+
+  if (request.country === 'MX') {
+    const mxProfile = userProfile as typeof TEST_USERS.MX[keyof typeof TEST_USERS.MX];
+    payload = {
+      external_request_id: requestId,
+      curp: request.documentId,
+      datos_personales: {
+        nombre_completo: mxProfile.nombre_completo,
+      },
+      informacion_crediticia: {
+        calificacion_buro: mxProfile.calificacion_buro,
+        historial_pagos: mxProfile.historial_pagos_ultimos_12_meses,
+      },
+      informacion_financiera: {
+        ingreso_mensual_mxn: mxProfile.ingreso_mensual_mxn,
+        deuda_mensual_mxn: mxProfile.deuda_mensual_mxn,
+        saldo_cuenta_mxn: mxProfile.saldo_cuenta_mxn,
+      },
+      informacion_laboral: {
+        estatus: mxProfile.estatus_laboral,
+        antiguedad_meses: mxProfile.antiguedad_laboral_meses,
+      },
+      informacion_adicional: {
+        tiene_vivienda_propia: mxProfile.tiene_vivienda_propia,
+        numero_tarjetas_credito: mxProfile.numero_tarjetas_credito,
+      },
+      metadata: {
+        proveedor: 'Buró de Crédito México',
+        fecha_consulta: new Date().toISOString(),
+        version_api: '2.0',
+      },
+    };
+  } else {
+    const coProfile = userProfile as typeof TEST_USERS.CO[keyof typeof TEST_USERS.CO];
+    payload = {
+      external_request_id: requestId,
+      cedula: request.documentId,
+      informacion_basica: {
+        nombre: coProfile.nombre,
+      },
+      datacredito: {
+        score: coProfile.score_datacredito,
+        categoria_riesgo: coProfile.categoria_riesgo,
+        comportamiento_pago: coProfile.comportamiento_pago,
+      },
+      datos_financieros: {
+        ingresos_mensuales: coProfile.ingresos_mensuales,
+        obligaciones_mensuales: coProfile.obligaciones_mensuales,
+        balance_cuentas: coProfile.balance_cuentas,
+        cantidad_creditos_activos: coProfile.cantidad_creditos_activos,
+      },
+      informacion_empleo: {
+        tipo_contrato: coProfile.tipo_contrato,
+        meses_antiguedad: coProfile.meses_antiguedad_trabajo,
+      },
+      datos_patrimonio: {
+        propietario_vivienda: coProfile.propietario_vivienda,
+      },
+      metadata: {
+        proveedor: 'DataCrédito Colombia',
+        fecha_consulta: new Date().toISOString(),
+        version_servicio: '3.1',
+      },
+    };
+  }
 
   console.log(`\n[${request.country} Provider] Sending callback for request ${requestId}`);
   console.log(`[${request.country} Provider] Document: ${request.documentId}`);
-  console.log(`[${request.country} Provider] Profile: ${userProfile.full_name}`);
-  console.log(`[${request.country} Provider] Credit Score: ${userProfile.credit_score}`);
   console.log(`[${request.country} Provider] Callback URL: ${request.callbackUrl}`);
 
   try {
@@ -216,6 +255,8 @@ async function processCallback(requestId: string) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Provider-Country': request.country,
+        'X-Request-Id': requestId,
       },
       body: JSON.stringify(payload),
     });
@@ -234,9 +275,6 @@ async function processCallback(requestId: string) {
   }
 }
 
-/**
- * Health check endpoint
- */
 app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
@@ -250,22 +288,19 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-/**
- * List test users endpoint (for debugging)
- */
 app.get('/test-users', (_req: Request, res: Response) => {
   res.json({
     mexico: Object.entries(TEST_USERS.MX).map(([documentId, profile]) => ({
       document_id: documentId,
-      full_name: profile.full_name,
-      credit_score: profile.credit_score,
-      expected_result: profile.credit_score >= 600 ? 'APPROVED' : 'REJECTED',
+      nombre: profile.nombre_completo,
+      score: profile.calificacion_buro,
+      expected_result: profile.calificacion_buro >= 600 ? 'APPROVED' : 'REJECTED',
     })),
     colombia: Object.entries(TEST_USERS.CO).map(([documentId, profile]) => ({
       document_id: documentId,
-      full_name: profile.full_name,
-      credit_score: profile.credit_score,
-      expected_result: profile.credit_score >= 550 ? 'APPROVED' : 'REJECTED',
+      nombre: profile.nombre,
+      score: profile.score_datacredito,
+      expected_result: profile.score_datacredito >= 550 ? 'APPROVED' : 'REJECTED',
     })),
   });
 });
@@ -282,11 +317,11 @@ app.listen(PORT, () => {
   console.log(`\n👥 Test Users:`);
   console.log(`   MX (Mexico):`);
   Object.entries(TEST_USERS.MX).forEach(([id, profile]) => {
-    console.log(`      ${id} - ${profile.full_name} (Score: ${profile.credit_score})`);
+    console.log(`      ${id} - ${profile.nombre_completo} (Score: ${profile.calificacion_buro})`);
   });
   console.log(`   CO (Colombia):`);
   Object.entries(TEST_USERS.CO).forEach(([id, profile]) => {
-    console.log(`      ${id} - ${profile.full_name} (Score: ${profile.credit_score})`);
+    console.log(`      ${id} - ${profile.nombre} (Score: ${profile.score_datacredito})`);
   });
   console.log('');
 });

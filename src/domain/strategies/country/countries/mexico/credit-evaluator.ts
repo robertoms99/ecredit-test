@@ -11,10 +11,10 @@ export class MexicoCreditEvaluator implements ICreditEvaluator {
   ): Promise<CreditEvaluationResult> {
     const financialData = bankingInfo.financialData as any;
 
-    const currentDebt = financialData?.debt ?? 0;
-    const accountBalance = financialData?.balance ?? 0;
-    const creditScore = financialData?.risk_score ?? 0;
-    const monthlyIncome = creditRequest.monthlyIncome;
+    const creditScore = financialData?.informacion_crediticia?.calificacion_buro ?? 0;
+    const currentDebt = financialData?.informacion_financiera?.deuda_mensual_mxn ?? 0;
+    const accountBalance = financialData?.informacion_financiera?.saldo_cuenta_mxn ?? 0;
+    const monthlyIncome = financialData?.informacion_financiera?.ingreso_mensual_mxn ?? creditRequest.monthlyIncome;
     const requestedAmount = creditRequest.requestedAmount;
 
     const debtToIncomeRatio = monthlyIncome > 0 ? currentDebt / monthlyIncome : Infinity;
