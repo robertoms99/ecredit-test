@@ -1,74 +1,87 @@
-import { StatusTransitionJob } from "../domain/jobs/status-transition-job";
-import { CountryRules } from "../domain/ports/rules"
-import { ColombiaRules } from "../domain/strategies/colombia-rules";
-import { MexicoRules } from "../domain/strategies/mexico-rules";
-import { CreateCreditRequestUseCase } from "../domain/use-cases";
-import { CreateCreditRequestValidator } from "../domain/validators/create-credit-request-validator";
-import { CreditRequestRepository } from "./adapters/repositories/credit-request-repository";
-import { RequestStatusRepository } from "./adapters/repositories/request-status-repository";
-import { connectionString, db } from "./db/client";
+
 import * as PgB from 'pg-boss';
-import { JobManager } from "./jobs/jobs-manager";
-import { BankDataProviderMexico } from "./adapters/strategies/mexico/bank-data-provider";
-import { BankDataProviderColombia } from "./adapters/strategies/colombia/bank-data-provider";
-import { IBankDataProvider } from "../domain/ports/strategies/bank-data-provider";
-import { BankDataProviderRegistry } from "../domain/ports/strategies/bank-data-provider-registry";
-import { IStatusTransitionStrategy } from "../domain/ports/strategies/status-transition";
-import { StatusTransitionRegistry } from "../domain/ports/strategies/status-transition-registry";
-import { ProcessExternalBankDataUseCase } from "../domain/use-cases/process-external-bank-data";
-import { ExternalBankDataValidatorRegistry } from "../domain/ports/strategies/external-bank-data-validator-registry";
-import { ExternalBankDataValidatorColombia } from "../domain/strategies/colombia/external-bank-data-validator";
-import { ExternalBankDataValidatorMexico } from "../domain/strategies/mexico/external-bank-data-validator";
-import { CreatedStatusTransition } from "../domain/strategies/created-status-transition";
-import { BankInfoRepository } from "./adapters/repositories/bank-info-repository";
-import { RequestStatusCodes } from "../domain/entities";
+import { connectionString, db } from './db/client';
+import { config } from '../config';
+
+import { CreditRequestRepository } from './adapters/repositories/credit-request-repository';
+import { RequestStatusRepository } from './adapters/repositories/request-status-repository';
+import { BankInfoRepository } from './adapters/repositories/bank-info-repository';
+import {
+  CountryStrategyRegistry,
+  createCountryStrategies,
+} from '../domain/strategies/country';
+import {
+  StatusTransitionRegistry,
+  CreatedStatusTransition,
+  EvaluatingStatusTransition,
+} from '../domain/strategies/transitions';
+import { CreateCreditRequestUseCase } from '../domain/use-cases/create-credit-request';
+import { ProcessExternalBankDataUseCase } from '../domain/use-cases/process-external-bank-data';
+import { StatusTransitionJob } from '../domain/jobs/status-transition-job';
+import { JobManager } from './jobs/jobs-manager';
+
 
 const creditRequestRepository = new CreditRequestRepository(db);
 const requestStatusRepository = new RequestStatusRepository(db);
 const bankInfoRepository = new BankInfoRepository(db);
 
-const countryRules: CountryRules[] = [
-  new ColombiaRules(),
-  new MexicoRules(),
-]
+const webhookCallbackUrl = `http://localhost:${config.server.port}/api/webhook`;
+const countryStrategies = createCountryStrategies(webhookCallbackUrl);
+const countryStrategyRegistry = new CountryStrategyRegistry();
 
-const bankDataProviderStrategies: IBankDataProvider[] = [
-  new BankDataProviderColombia(),
-  new BankDataProviderMexico()
-]
+for (const strategy of countryStrategies) {
+  const countryCode = strategy.getConfig().code;
+  countryStrategyRegistry.register(countryCode, strategy);
+}
 
-const bankDataProviderRegistry = new BankDataProviderRegistry(bankDataProviderStrategies);
-
-const statusTransitionStrategies: IStatusTransitionStrategy[] = [
-  new CreatedStatusTransition(creditRequestRepository,requestStatusRepository, bankInfoRepository, bankDataProviderRegistry),
-]
-
-const statusTransitionRegistry = new StatusTransitionRegistry(statusTransitionStrategies);
+const statusTransitionRegistry = new StatusTransitionRegistry();
 
 const pgBoss = new PgB.PgBoss(connectionString);
+const jobManager = new JobManager(pgBoss);
 
-const jobManager =
-  new JobManager(pgBoss)
-    .register((pgBoss)=> new StatusTransitionJob(pgBoss,creditRequestRepository, statusTransitionRegistry))
+const createdTransition = new CreatedStatusTransition(
+  countryStrategyRegistry,
+  bankInfoRepository,
+  creditRequestRepository,
+  requestStatusRepository,
+  jobManager
+);
+
+const evaluatingTransition = new EvaluatingStatusTransition(
+  countryStrategyRegistry,
+  bankInfoRepository,
+  creditRequestRepository,
+  requestStatusRepository,
+  jobManager
+);
+
+statusTransitionRegistry.register(createdTransition);
+statusTransitionRegistry.register(evaluatingTransition);
+
+
+jobManager.register(
+  (boss) =>
+    new StatusTransitionJob(boss, creditRequestRepository, statusTransitionRegistry)
+);
 
 await jobManager.start();
 
-const creditRequestValidator = new CreateCreditRequestValidator(countryRules);
+export const createCreditRequestUseCase = new CreateCreditRequestUseCase(
+  creditRequestRepository,
+  requestStatusRepository,
+  countryStrategyRegistry,
+  jobManager
+);
 
 export const processExternalBankDataUseCase = new ProcessExternalBankDataUseCase(
   creditRequestRepository,
   requestStatusRepository,
   bankInfoRepository,
-  new ExternalBankDataValidatorRegistry([
-    new ExternalBankDataValidatorColombia(),
-    new ExternalBankDataValidatorMexico()
-  ]),
+  countryStrategyRegistry,
   jobManager
 );
 
-export const createCreditRequestUseCase = new CreateCreditRequestUseCase(creditRequestRepository,  requestStatusRepository,  creditRequestValidator, jobManager);
-
-
-export const getCreditRequestUseCase = createCreditRequestUseCase//change this
-export const listCreditRequestsUseCase = createCreditRequestUseCase//change this
-export const updateCreditRequestStatusUseCase = createCreditRequestUseCase//change this
+// TODO: Implement these use cases
+export const getCreditRequestUseCase = createCreditRequestUseCase; // change this
+export const listCreditRequestsUseCase = createCreditRequestUseCase; // change this
+export const updateCreditRequestStatusUseCase = createCreditRequestUseCase; // change this
