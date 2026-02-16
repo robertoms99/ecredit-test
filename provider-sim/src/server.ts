@@ -184,7 +184,7 @@ async function processCallback(requestId: string) {
   if (request.country === 'MX') {
     const mxProfile = userProfile as typeof TEST_USERS.MX[keyof typeof TEST_USERS.MX];
     payload = {
-      external_request_id: requestId,
+      request_id: requestId,
       curp: request.documentId,
       datos_personales: {
         nombre_completo: mxProfile.nombre_completo,
@@ -215,7 +215,7 @@ async function processCallback(requestId: string) {
   } else {
     const coProfile = userProfile as typeof TEST_USERS.CO[keyof typeof TEST_USERS.CO];
     payload = {
-      external_request_id: requestId,
+      request_id: requestId,
       cedula: request.documentId,
       informacion_basica: {
         nombre: coProfile.nombre,
