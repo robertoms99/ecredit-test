@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { CreditRequest, NewCreditRequest } from "../../../domain/entities/credit-request"
 import { ICreditRequestRepository } from "../../../domain/ports/repositories/credit-request-repository"
 import { schema } from "../../db/client";
@@ -11,7 +12,6 @@ export class CreditRequestRepository implements ICreditRequestRepository{
   }
 
   async findById(id: string): Promise<CreditRequest | null> {
-    // Implementation for finding a credit request by ID
-      throw new Error('Method not implemented.');
+    return await this.db.select().from(schema.creditRequests).where(eq(schema.creditRequests.id, id)).then((result) => result[0]);
   }
 }

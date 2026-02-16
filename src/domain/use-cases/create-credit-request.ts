@@ -5,6 +5,7 @@ import { ICreateCreditRequestUseCase } from "../ports/use-cases/create-credit-re
 import { CreditRequest, NewCreditRequest } from "../entities/credit-request";
 import { IValidator } from "../ports/validator";
 import { RequestStatusCodes } from "../entities";
+import { IJobManager } from "../ports/jobs";
 
 export class CreateCreditRequestUseCase {
   private readonly initialRequestStatusCode: RequestStatusCodes = RequestStatusCodes.PENDING
@@ -13,6 +14,7 @@ export class CreateCreditRequestUseCase {
       private readonly creditRequestRepository: ICreditRequestRepository,
       private readonly requestStatusRepository: IRequestStatusRepository,
       private readonly creditRequestValidator: IValidator<ICreateCreditRequestUseCase>,
+      private readonly jobManager: IJobManager,
     ) { }
 
   async execute(input: ICreateCreditRequestUseCase): Promise<CreditRequest> {
@@ -28,7 +30,11 @@ export class CreateCreditRequestUseCase {
 
     const createdCreditRequest = await this.creditRequestRepository.create(newCreditRequest);
 
-    //enivar el evento de creacion
+    await this.jobManager.emit("credit_request_status_change", {
+      credit_request_id: createdCreditRequest.id,
+      request_status_id: requestStatus.id,
+      request_status_code: this.initialRequestStatusCode
+    });
 
     return createdCreditRequest
     }
