@@ -22,7 +22,6 @@ export class CreatedStatusTransition implements IStatusTransitionStrategy {
   async execute(creditRequest: CreditRequest): Promise<void> {
     const countryStrategy = this.countryStrategyRegistry.get(creditRequest.country);
     const bankDataProvider = countryStrategy.getBankDataProvider();
- console.log('Fetching bank data...');
     const bankingInfo = await bankDataProvider.fetchBankData(
       creditRequest.documentId,
       creditRequest.id

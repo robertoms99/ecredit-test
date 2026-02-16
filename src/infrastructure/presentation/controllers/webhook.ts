@@ -11,16 +11,16 @@ router.post("/process-bank-data",
     const parsed = processBankDataSchema.safeParse(value)
     if (!parsed.success) {
       const details = parsed.error.flatten();
-      throw validationError('Missing or invalid external_request_id', details);
+      throw validationError('Missing or invalid request_id', details);
     }
     return parsed.data
   })
   , async (c) => {
   try {
     const body = await c.req.json();
-    
+
     await processExternalBankDataUseCase.execute({
-      externalRequestId: body.external_request_id,
+      externalRequestId: body.request_id,
       payload: body,
     });
 
