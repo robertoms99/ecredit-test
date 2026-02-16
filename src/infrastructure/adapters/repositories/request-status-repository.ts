@@ -1,8 +1,13 @@
-import { RequestStatus } from "../../../core/domain/entities/request-status";
-import { IRequestStatusRepository } from "../../../core/domain/ports/repositories/request-status-repository";
+import { eq } from "drizzle-orm";
+import { RequestStatus, RequestStatusCodes } from "../../../domain/entities/request-status";
+import { IRequestStatusRepository } from "../../../domain/ports/repositories/request-status-repository";
+import { requestStatuses } from "../../db/schemas";
+import { DBClient } from "../../db/types";
 
 export class RequestStatusRepository implements IRequestStatusRepository {
-  async getStatusByCode(code: string): Promise<RequestStatus> {
-    throw new Error('Method not implemented.');
+  public constructor(private readonly db: DBClient) { }
+
+  async getStatusByCode(code:RequestStatusCodes ): Promise<RequestStatus> {
+    return await this.db.select().from(requestStatuses).where(eq(requestStatuses.code, code))
   }
 }

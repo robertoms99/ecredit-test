@@ -2,11 +2,12 @@ import { request } from "node:https";
 import { ICreditRequestRepository } from "../ports/repositories/credit-request-repository";
 import { IRequestStatusRepository } from "../ports/repositories/request-status-repository";
 import { ICreateCreditRequestUseCase } from "../ports/use-cases/create-credit-request";
-import { CreditRequest } from "../entities/credit-request";
+import { CreditRequest, NewCreditRequest } from "../entities/credit-request";
 import { IValidator } from "../ports/validator";
+import { RequestStatusCodes } from "../entities";
 
 export class CreateCreditRequestUseCase {
-  private readonly initialRequestStatusCode = "PENDING"
+  private readonly initialRequestStatusCode: RequestStatusCodes = RequestStatusCodes.PENDING
 
     constructor(
       private readonly creditRequestRepository: ICreditRequestRepository,
@@ -19,13 +20,16 @@ export class CreateCreditRequestUseCase {
 
     const requestStatus = await this.requestStatusRepository.getStatusByCode(this.initialRequestStatusCode);
 
-    const newCreditRequest = {
+    const newCreditRequest: NewCreditRequest = {
       ...input,
       statusId: requestStatus.id,
-      requestedAt: new Date().toISOString()
+      requestedAt: new Date()
     }
 
-    const creditRequest = await this.creditRequestRepository.create(newCreditRequest);
-    return creditRequest;
+    const createdCreditRequest = await this.creditRequestRepository.create(newCreditRequest);
+
+    //enivar el evento de creacion
+
+    return createdCreditRequest
     }
 }
