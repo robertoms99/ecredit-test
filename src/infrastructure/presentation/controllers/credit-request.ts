@@ -1,9 +1,14 @@
 import { Hono } from "hono";
 import { validator } from 'hono/validator'
 import { createCreditRequestUseCase, getCreditRequestUseCase, listCreditRequestsUseCase, updateCreditRequestStatusUseCase } from "../../di";
-import * as z from 'zod'
-import { createCreditRequestSchema } from "../schemas/create-credit-request";
-import { AppError, validationError, notFoundError } from '../../../domain/errors';
+import { 
+  createCreditRequestSchema,
+  getCreditRequestParamsSchema,
+  listCreditRequestsQuerySchema,
+  updateCreditRequestStatusParamsSchema,
+  updateCreditRequestStatusBodySchema
+} from "../schemas";
+import { AppError, validationError } from '../../../domain/errors';
 
 const router = new Hono()
 
@@ -12,61 +17,117 @@ router.post("/",
     const parsed = createCreditRequestSchema.safeParse(value)
     if (!parsed.success) {
       const details = parsed.error.flatten();
-      throw validationError('Schema enviado es invalido', details);
+      throw validationError('Invalid request body', details);
     }
     return parsed.data
-  })
-  , async (c) => {
-  try {
-    const body = await c.req.json();
+  }),
+  async (c) => {
     try {
+      const body = c.req.valid('json');
       const saved = await createCreditRequestUseCase.execute(body);
       return c.json(saved, 201);
-    } catch (e: any) {
-      if (e instanceof AppError) {
-        return new Response(JSON.stringify(e.toResponse()), { status: e.status, headers: { 'Content-Type': 'application/json' } });
+    } catch (error) {
+      if (error instanceof AppError) {
+        return new Response(JSON.stringify(error.toResponse()), { 
+          status: error.status, 
+          headers: { 'Content-Type': 'application/json' } 
+        });
       }
-      throw e;
+      throw error;
     }
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return new Response(JSON.stringify(error.toResponse()), { status: error.status, headers: { 'Content-Type': 'application/json' } });
-    }
-    throw error;
   }
-});
+);
 
-
-router.get('/:id', async (c) => {
-  const id = c.req.param('id');
-  const req = await getCreditRequestUseCase.execute(id as any);
-  if (!req) throw notFoundError('Credit request not found');
-  return c.json(req);
-});
-
-router.get('/', async (c) => {
-  const country = c.req.query('country');
-  const status = c.req.query('status') as any;
-  const from = c.req.query('from');
-  const to = c.req.query('to');
-  const list = await listCreditRequestsUseCase.execute({ country: country as any, status, from, to } as any);
-  return c.json(list);
-});
-
-router.put('/:id/status', async (c) => {
-  const id = c.req.param('id');
-  const { status } = await c.req.json();
-  try {
-    const updated = await updateCreditRequestStatusUseCase.execute(id as any);
-    if (!updated) throw notFoundError('Credit request not found');
-    return c.json(updated);
-  } catch (e: any) {
-    if (e instanceof AppError) {
-      return new Response(JSON.stringify(e.toResponse()), { status: e.status, headers: { 'Content-Type': 'application/json' } });
+router.get('/:id',
+  validator('param', (value, c) => {
+    const parsed = getCreditRequestParamsSchema.safeParse(value);
+    if (!parsed.success) {
+      const details = parsed.error.flatten();
+      throw validationError('Invalid credit request ID', details);
     }
-    throw e;
+    return parsed.data;
+  }),
+  async (c) => {
+    try {
+      const { id } = c.req.valid('param');
+      const req = await getCreditRequestUseCase.execute(id);
+      return c.json(req);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return new Response(JSON.stringify(error.toResponse()), { 
+          status: error.status, 
+          headers: { 'Content-Type': 'application/json' } 
+        });
+      }
+      throw error;
+    }
   }
-});
+);
+
+router.get('/',
+  validator('query', (value, c) => {
+    const parsed = listCreditRequestsQuerySchema.safeParse(value);
+    if (!parsed.success) {
+      const details = parsed.error.flatten();
+      throw validationError('Invalid query parameters', details);
+    }
+    return parsed.data;
+  }),
+  async (c) => {
+    try {
+      const filters = c.req.valid('query');
+      const result = await listCreditRequestsUseCase.execute(filters);
+      return c.json(result);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return new Response(JSON.stringify(error.toResponse()), { 
+          status: error.status, 
+          headers: { 'Content-Type': 'application/json' } 
+        });
+      }
+      throw error;
+    }
+  }
+);
+
+router.put('/:id/status',
+  validator('param', (value, c) => {
+    const parsed = updateCreditRequestStatusParamsSchema.safeParse(value);
+    if (!parsed.success) {
+      const details = parsed.error.flatten();
+      throw validationError('Invalid credit request ID', details);
+    }
+    return parsed.data;
+  }),
+  validator('json', (value, c) => {
+    const parsed = updateCreditRequestStatusBodySchema.safeParse(value);
+    if (!parsed.success) {
+      const details = parsed.error.flatten();
+      throw validationError('Invalid request body', details);
+    }
+    return parsed.data;
+  }),
+  async (c) => {
+    try {
+      const { id } = c.req.valid('param');
+      const { status } = c.req.valid('json');
+      
+      const updated = await updateCreditRequestStatusUseCase.execute({
+        creditRequestId: id,
+        statusCode: status
+      });
+      
+      return c.json(updated);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return new Response(JSON.stringify(error.toResponse()), { 
+          status: error.status, 
+          headers: { 'Content-Type': 'application/json' } 
+        });
+      }
+      throw error;
+    }
+  }
+);
 
 export default router;

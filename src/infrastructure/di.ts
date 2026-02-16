@@ -17,6 +17,9 @@ import {
 } from '../domain/strategies/transitions';
 import { CreateCreditRequestUseCase } from '../domain/use-cases/create-credit-request';
 import { ProcessExternalBankDataUseCase } from '../domain/use-cases/process-external-bank-data';
+import { GetCreditRequestUseCase } from '../domain/use-cases/get-credit-request';
+import { ListCreditRequestsUseCase } from '../domain/use-cases/list-credit-requests';
+import { UpdateCreditRequestStatusUseCase } from '../domain/use-cases/update-credit-request-status';
 import { StatusTransitionJob } from '../domain/jobs/status-transition-job';
 import { JobManager } from './jobs/jobs-manager';
 import { DatabaseNotificationListener } from './db/notification-listener';
@@ -85,9 +88,14 @@ export const processExternalBankDataUseCase = new ProcessExternalBankDataUseCase
   countryStrategyRegistry
 );
 
-export const getCreditRequestUseCase = createCreditRequestUseCase;
-export const listCreditRequestsUseCase = createCreditRequestUseCase;
-export const updateCreditRequestStatusUseCase = createCreditRequestUseCase;
+export const getCreditRequestUseCase = new GetCreditRequestUseCase(creditRequestRepository);
+
+export const listCreditRequestsUseCase = new ListCreditRequestsUseCase(creditRequestRepository);
+
+export const updateCreditRequestStatusUseCase = new UpdateCreditRequestStatusUseCase(
+  creditRequestRepository,
+  requestStatusRepository
+);
 
 process.on('SIGTERM', async () => {
   console.log('Received SIGTERM, shutting down gracefully...');
