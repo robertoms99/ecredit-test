@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev": "bun run dev:provider & bun run dev:frontend & bun run dev:backend",
-    "dev:backend": "cd apps/backend && bun db:migrate && bun db:seed && bun dev",
+    "dev:backend": "cd apps/backend && bun dev",
     "dev:frontend": "cd apps/frontend && bun dev",
     "dev:provider": "cd apps/provider-sim && bun dev",
     "build": "bun run build:backend && bun run build:frontend && bun run build:provider",

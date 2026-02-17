@@ -1,3 +1,5 @@
+
+console.error("s",process.env.DATABASE_URL)
 export const config = {
   db: {
     url: process.env.DATABASE_URL || "",

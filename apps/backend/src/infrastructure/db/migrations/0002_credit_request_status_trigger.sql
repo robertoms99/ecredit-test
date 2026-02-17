@@ -25,7 +25,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER credit_request_status_change_trigger
+CREATE OR REPLACE TRIGGER credit_request_status_change_trigger
 AFTER INSERT OR UPDATE OF status_id
 ON credit_requests
 FOR EACH ROW
