@@ -4,12 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run db:migrate && bun run db:seed && bun run --watch src/server.ts",
-    "build": "bun build src/server.ts --target=bun --outdir=dist",
+    "dev": "bun run db:migrate && bun run db:seed:dev && bun run --watch src/server.ts",
+    "build": "bun run build:seed && bun build src/server.ts --target=bun --outfile=dist/server.js",
+    "build:seed": "bun build src/infrastructure/db/seed.ts --target=bun --outfile=dist/seed.js",
     "start": "NODE_ENV=production bun dist/server.js",
     "db:migrations:generate": "bun x drizzle-kit generate --config src/infrastructure/db/drizzle.config.ts",
     "db:migrate": "bun run src/infrastructure/db/migrate.ts",
-    "db:seed": "bun run src/infrastructure/db/seed.ts"
+    "db:seed:dev": "bun run src/infrastructure/db/seed.ts",
+    "db:seed:prod": "NODE_ENV=production bun dist/seed.js"
   },
   "dependencies": {
     "drizzle-orm": "^0.31.2",

@@ -68,15 +68,14 @@ async function seed() {
   console.log('   Admin 2:');
   console.log('     - Email: admin2@ecredit.com');
   console.log('     - Password: admin123456');
-  console.log('');
-  console.log('📝 Test Document IDs (for provider-sim):');
-  console.log('   Mexico (MX):');
-  console.log('     - CURP: GOMC860101HDFRRA09 → Expected: APPROVED, score 750');
-  console.log('     - CURP: BAPC901215MDFRRS03 → Expected: REJECTED, score 450');
-  console.log('   Colombia (CO):');
-  console.log('     - CC: 1234567890 → Expected: APPROVED, score 680');
-  console.log('     - CC: 9876543210 → Expected: REJECTED, score 400');
-  console.log('');
 }
 
-seed().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1); });
+// Only run if called directly (not imported)
+if (import.meta.main) {
+  seed()
+    .then(() => process.exit(0))
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
+}

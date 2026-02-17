@@ -42,6 +42,12 @@ COPY --from=deps --chown=bunuser:bunuser /app/node_modules ./node_modules
 COPY --from=builder --chown=bunuser:bunuser /app/dist ./dist
 COPY --from=builder --chown=bunuser:bunuser /app/package.json ./
 COPY --chown=bunuser:bunuser src/infrastructure/db ./src/infrastructure/db
+COPY --chown=bunuser:bunuser docker-entrypoint.sh ./docker-entrypoint.sh
+
+# Make entrypoint executable
+USER root
+RUN chmod +x ./docker-entrypoint.sh
+USER bunuser
 
 # Set environment
 ENV NODE_ENV=production
@@ -58,4 +64,4 @@ HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
 # Start the application
-CMD ["bun", "start"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

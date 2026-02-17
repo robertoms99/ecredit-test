@@ -1,8 +1,9 @@
 export const config = {
   db: {
-    url: process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/ecredit",
+    url: process.env.DATABASE_URL || "",
   },
   server: {
+    internalHost: process.env.INTERNAL_HOST || "",
     port: process.env.PORT || 3000,
   },
   cors: {

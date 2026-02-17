@@ -56,6 +56,7 @@ services:
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
+      INTERNAL_HOST: backend #nombre del servicio
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
       FRONTEND_URL: http://localhost:${FRONTEND_PORT}

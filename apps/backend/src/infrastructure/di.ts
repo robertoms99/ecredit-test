@@ -35,7 +35,7 @@ const requestStatusRepository = new RequestStatusRepository(db);
 const bankInfoRepository = new BankInfoRepository(db);
 const statusTransitionRepository = new StatusTransitionRepository(db);
 
-const webhookCallbackUrl = `http://localhost:${config.server.port}/api/webhook/process-bank-data`;
+const webhookCallbackUrl = `http://${config.server.internalHost}:${config.server.port}/api/webhook/process-bank-data`;
 const countryStrategies = createCountryStrategies(webhookCallbackUrl);
 const countryStrategyRegistry = new CountryStrategyRegistry();
 
