@@ -7,7 +7,7 @@ export const statusTransitions = pgTable('status_transitions', {
   id: uuid('id').defaultRandom().primaryKey(),
   reason: text('reason'),
   triggeredBy: varchar('triggered_by', { length: 32 }).notNull(), // 'user' | 'system' | 'webhook' | 'provider'
-  metadata: jsonb('metadata').notNull().default({}),
+  metadata: jsonb('metadata').$type<Record<string, any>>().notNull().default({}),
   creditRequestId: uuid('credit_request_id').notNull().references(() => creditRequests.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
   fromStatusId: uuid('from_status_id').references(() => requestStatuses.id, { onDelete: 'set null', onUpdate: 'cascade' }),
   toStatusId: uuid('to_status_id').notNull().references(() => requestStatuses.id, { onDelete: 'restrict', onUpdate: 'cascade' }),

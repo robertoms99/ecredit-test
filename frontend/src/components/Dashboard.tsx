@@ -7,6 +7,7 @@ import { CountryFilter } from './CountryFilter';
 import { CreateCreditRequestForm } from './CreateCreditRequestForm';
 import { CreditRequestDetailsModal } from './CreditRequestDetailsModal';
 import { UpdateStatusModal } from './UpdateStatusModal';
+import { StatusHistoryModal } from './StatusHistoryModal';
 import { useAuth } from '../hooks/useAuth';
 
 
@@ -24,6 +25,7 @@ export function Dashboard() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<CreditRequest | null>(null);
 
   // Loading states for actions
@@ -150,13 +152,22 @@ export function Dashboard() {
     setShowUpdateStatusModal(true);
   };
 
-  const handleUpdateStatusSubmit = async (statusCode: string) => {
+  // Handler: View history
+  const handleViewHistory = (request: CreditRequest) => {
+    setSelectedRequest(request);
+    setShowHistoryModal(true);
+  };
+
+  const handleUpdateStatusSubmit = async (statusCode: string, reason?: string) => {
     if (!selectedRequest) return;
 
     try {
       setIsUpdatingStatus(true);
       setError(null);
-      const updatedRequest = await creditRequestsApi.updateStatus(selectedRequest.id, { status: statusCode });
+      const updatedRequest = await creditRequestsApi.updateStatus(selectedRequest.id, { 
+        status: statusCode,
+        reason 
+      });
 
       // Update request in list
       setRequests((prev) =>
@@ -305,6 +316,7 @@ export function Dashboard() {
                 isNew={updatedIds.has(request.id)}
                 onViewDetails={handleViewDetails}
                 onUpdateStatus={handleUpdateStatus}
+                onViewHistory={handleViewHistory}
               />
             ))}
           </div>
@@ -339,6 +351,18 @@ export function Dashboard() {
             setSelectedRequest(null);
           }}
           isLoading={isUpdatingStatus}
+        />
+      )}
+
+      {/* Status History Modal */}
+      {showHistoryModal && selectedRequest && (
+        <StatusHistoryModal
+          creditRequestId={selectedRequest.id}
+          clientName={selectedRequest.fullName}
+          onClose={() => {
+            setShowHistoryModal(false);
+            setSelectedRequest(null);
+          }}
         />
       )}
     </div>

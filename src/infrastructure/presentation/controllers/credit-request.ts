@@ -1,6 +1,12 @@
 import { Hono } from "hono";
 import { validator } from 'hono/validator'
-import { createCreditRequestUseCase, getCreditRequestUseCase, listCreditRequestsUseCase, updateCreditRequestStatusUseCase } from "../../di";
+import { 
+  createCreditRequestUseCase, 
+  getCreditRequestUseCase, 
+  listCreditRequestsUseCase, 
+  updateCreditRequestStatusUseCase,
+  getStatusHistoryUseCase 
+} from "../../di";
 import {
   createCreditRequestSchema,
   getCreditRequestParamsSchema,
@@ -138,7 +144,7 @@ router.patch('/:id/status',
   async (c) => {
     try {
       const { id } = c.req.valid('param');
-      const { status } = c.req.valid('json');
+      const { status, reason } = c.req.valid('json');
       const auth = getAuth(c);
 
       const existingRequest = await getCreditRequestUseCase.execute(id);
@@ -155,10 +161,42 @@ router.patch('/:id/status',
 
       const updated = await updateCreditRequestStatusUseCase.execute({
         creditRequestId: id,
-        statusCode: status
+        statusCode: status,
+        reason,
+        triggeredBy: 'user',
+        userId: auth.userId,
       });
 
       return c.json(updated);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return new Response(JSON.stringify(error.toResponse()), {
+          status: error.status,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      throw error;
+    }
+  }
+);
+
+router.get('/:id/history',
+  validator('param', (value, c) => {
+    const parsed = getCreditRequestParamsSchema.safeParse(value);
+    if (!parsed.success) {
+      const details = parsed.error.flatten();
+      throw validationError('Invalid credit request ID', details);
+    }
+    return parsed.data;
+  }),
+  async (c) => {
+    try {
+      const { id } = c.req.valid('param');
+      const auth = getAuth(c);
+
+      const history = await getStatusHistoryUseCase.execute(id, auth.userId);
+
+      return c.json(history);
     } catch (error) {
       if (error instanceof AppError) {
         return new Response(JSON.stringify(error.toResponse()), {

@@ -1,5 +1,6 @@
 import type { ICreditRequestRepository } from '../ports/repositories/credit-request-repository';
 import type { IRequestStatusRepository } from '../ports/repositories/request-status-repository';
+import type { IStatusTransitionRepository } from '../ports/repositories/status-transition-repository';
 import type { ICreateCreditRequestUseCaseInput } from '../ports/use-cases/create-credit-request';
 import type { CreditRequest, NewCreditRequest } from '../entities/credit-request';
 import type { CountryStrategyRegistry } from '../strategies/country/country-strategy.registry';
@@ -12,7 +13,8 @@ export class CreateCreditRequestUseCase {
   constructor(
     private readonly creditRequestRepository: ICreditRequestRepository,
     private readonly requestStatusRepository: IRequestStatusRepository,
-    private readonly countryStrategyRegistry: CountryStrategyRegistry
+    private readonly countryStrategyRegistry: CountryStrategyRegistry,
+    private readonly transitionRepository: IStatusTransitionRepository
   ) {}
 
   async execute(input: ICreateCreditRequestUseCaseInput): Promise<CreditRequest> {
@@ -29,6 +31,25 @@ export class CreateCreditRequestUseCase {
     };
 
     const createdCreditRequest = await this.creditRequestRepository.create(newCreditRequest);
+
+    try {
+      console.log('[CreateCreditRequest] Creating initial transition log');
+      await this.transitionRepository.create({
+        creditRequestId: createdCreditRequest.id,
+        fromStatusId: null, // Initial state has no previous status
+        toStatusId: requestStatus.id,
+        reason: 'Solicitud creada',
+        triggeredBy: 'user',
+        metadata: {
+          userId: input.userId,
+          toStatusCode: requestStatus.code,
+          toStatusName: requestStatus.name,
+        },
+      });
+      console.log('[CreateCreditRequest] Initial transition logged');
+    } catch (error) {
+      console.error('[CreateCreditRequest] Failed to log initial transition:', error);
+    }
 
     return createdCreditRequest;
   }

@@ -6,6 +6,7 @@ interface Props {
   isNew?: boolean;
   onViewDetails: (request: CreditRequest) => void;
   onUpdateStatus: (request: CreditRequest) => void;
+  onViewHistory: (request: CreditRequest) => void;
 }
 
 const countryNames: Record<string, string> = {
@@ -13,7 +14,7 @@ const countryNames: Record<string, string> = {
   CO: 'Colombia',
 };
 
-export function CreditRequestCard({ request, isNew, onViewDetails, onUpdateStatus }: Props) {
+export function CreditRequestCard({ request, isNew, onViewDetails, onUpdateStatus, onViewHistory }: Props) {
   // Use status code if available, otherwise fall back to status name
   const statusDisplayName = request.status?.code 
     ? getStatusName(request.status.code)
@@ -98,6 +99,15 @@ export function CreditRequestCard({ request, isNew, onViewDetails, onUpdateStatu
           className="flex-1 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors"
         >
           Actualizar Estado
+        </button>
+        <button
+          onClick={() => onViewHistory(request)}
+          className="px-3 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors"
+          title="Ver historial de cambios"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </button>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { httpServer } from './http-server';
 import { CreditRequestRepository } from './adapters/repositories/credit-request-repository';
 import { RequestStatusRepository } from './adapters/repositories/request-status-repository';
 import { BankInfoRepository } from './adapters/repositories/bank-info-repository';
+import { StatusTransitionRepository } from './adapters/repositories/status-transition-repository';
 import {
   CountryStrategyRegistry,
   createCountryStrategies,
@@ -22,6 +23,7 @@ import { ProcessExternalBankDataUseCase } from '../domain/use-cases/process-exte
 import { GetCreditRequestUseCase } from '../domain/use-cases/get-credit-request';
 import { ListCreditRequestsUseCase } from '../domain/use-cases/list-credit-requests';
 import { UpdateCreditRequestStatusUseCase } from '../domain/use-cases/update-credit-request-status';
+import { GetStatusHistoryUseCase } from '../domain/use-cases/get-status-history';
 import { StatusTransitionJob } from '../domain/jobs/status-transition-job';
 import { JobManager } from './jobs/jobs-manager';
 import { DatabaseNotificationListener } from './db/notification-listener';
@@ -31,6 +33,7 @@ export const wsServer = new WebSocketServer(httpServer);
 const creditRequestRepository = new CreditRequestRepository(db);
 const requestStatusRepository = new RequestStatusRepository(db);
 const bankInfoRepository = new BankInfoRepository(db);
+const statusTransitionRepository = new StatusTransitionRepository(db);
 
 const webhookCallbackUrl = `http://localhost:${config.server.port}/api/webhook/process-bank-data`;
 const countryStrategies = createCountryStrategies(webhookCallbackUrl);
@@ -50,14 +53,16 @@ const createdTransition = new CreatedStatusTransition(
   countryStrategyRegistry,
   bankInfoRepository,
   creditRequestRepository,
-  requestStatusRepository
+  requestStatusRepository,
+  statusTransitionRepository
 );
 
 const evaluatingTransition = new EvaluatingStatusTransition(
   countryStrategyRegistry,
   bankInfoRepository,
   creditRequestRepository,
-  requestStatusRepository
+  requestStatusRepository,
+  statusTransitionRepository
 );
 
 statusTransitionRegistry.register(createdTransition);
@@ -82,14 +87,16 @@ await dbNotificationListener.start();
 export const createCreditRequestUseCase = new CreateCreditRequestUseCase(
   creditRequestRepository,
   requestStatusRepository,
-  countryStrategyRegistry
+  countryStrategyRegistry,
+  statusTransitionRepository
 );
 
 export const processExternalBankDataUseCase = new ProcessExternalBankDataUseCase(
   creditRequestRepository,
   requestStatusRepository,
   bankInfoRepository,
-  countryStrategyRegistry
+  countryStrategyRegistry,
+  statusTransitionRepository
 );
 
 export const getCreditRequestUseCase = new GetCreditRequestUseCase(creditRequestRepository);
@@ -98,7 +105,13 @@ export const listCreditRequestsUseCase = new ListCreditRequestsUseCase(creditReq
 
 export const updateCreditRequestStatusUseCase = new UpdateCreditRequestStatusUseCase(
   creditRequestRepository,
-  requestStatusRepository
+  requestStatusRepository,
+  statusTransitionRepository
+);
+
+export const getStatusHistoryUseCase = new GetStatusHistoryUseCase(
+  statusTransitionRepository,
+  creditRequestRepository
 );
 
 process.on('SIGTERM', async () => {

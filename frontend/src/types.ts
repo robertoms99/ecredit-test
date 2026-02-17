@@ -45,6 +45,7 @@ export interface CreateCreditRequestPayload {
 
 export interface UpdateStatusPayload {
   status: string;
+  reason?: string;
 }
 
 // Status options for the UI
@@ -52,4 +53,25 @@ export interface StatusOption {
   code: string;
   name: string;
   color: string;
+}
+
+export interface StatusTransition {
+  id: string;
+  reason: string | null;
+  triggeredBy: 'user' | 'system' | 'webhook' | 'provider';
+  metadata: Record<string, any>;
+  creditRequestId: string;
+  fromStatusId: string | null;
+  toStatusId: string;
+  createdAt: string;
+  fromStatus: {
+    id: string;
+    name: string;
+    code: string;
+  } | null;
+  toStatus: {
+    id: string;
+    name: string;
+    code: string;
+  };
 }

@@ -3,7 +3,7 @@ import { CreditRequest, StatusOption } from '../types';
 
 interface UpdateStatusModalProps {
   creditRequest: CreditRequest;
-  onUpdate: (statusCode: string) => Promise<void>;
+  onUpdate: (statusCode: string, reason?: string) => Promise<void>;
   onCancel: () => void;
   isLoading: boolean;
 }
@@ -19,6 +19,7 @@ const STATUS_OPTIONS: StatusOption[] = [
 
 export function UpdateStatusModal({ creditRequest, onUpdate, onCancel, isLoading }: UpdateStatusModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [reason, setReason] = useState<string>('');
   const [error, setError] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +31,7 @@ export function UpdateStatusModal({ creditRequest, onUpdate, onCancel, isLoading
     }
 
     try {
-      await onUpdate(selectedStatus);
+      await onUpdate(selectedStatus, reason || undefined);
     } catch (err) {
       // Error handling is done in parent component
       console.error('Status update error:', err);
@@ -90,6 +91,25 @@ export function UpdateStatusModal({ creditRequest, onUpdate, onCancel, isLoading
               {error && (
                 <p className="text-red-500 text-sm mt-1">{error}</p>
               )}
+            </div>
+
+            {/* Reason textarea */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Razón del cambio (opcional)
+              </label>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                rows={3}
+                maxLength={1000}
+                placeholder="Describe el motivo del cambio de estado..."
+                disabled={isLoading}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {reason.length}/1000 caracteres
+              </p>
             </div>
 
             {/* Preview of selected status */}
