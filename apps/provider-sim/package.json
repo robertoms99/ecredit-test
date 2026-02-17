@@ -1,10 +1,12 @@
 {
-  "name": "provider-sim",
+  "name": "@ecredit/provider-sim",
   "version": "1.0.0",
   "description": "Simulated banking providers (Bun + TS)",
   "type": "module",
   "scripts": {
-    "start": "bun run src/server.ts"
+    "dev": "bun run src/server.ts",
+    "build": "bun build src/server.ts --target=bun --outdir=dist",
+    "start": "NODE_ENV=production bun dist/server.js"
   },
   "dependencies": {
     "express": "^4.19.2"
