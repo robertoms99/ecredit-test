@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CreditRequest, StatusOption } from '../types';
+import { Alert } from './Alert';
 
 interface UpdateStatusModalProps {
   creditRequest: CreditRequest;
@@ -20,20 +21,23 @@ const STATUS_OPTIONS: StatusOption[] = [
 export function UpdateStatusModal({ creditRequest, onUpdate, onCancel, isLoading }: UpdateStatusModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [reason, setReason] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [validationError, setValidationError] = useState<string>('');
+  const [apiError, setApiError] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setApiError('');
 
     if (!selectedStatus) {
-      setError('Por favor selecciona un estado');
+      setValidationError('Por favor selecciona un estado');
       return;
     }
 
     try {
       await onUpdate(selectedStatus, reason || undefined);
     } catch (err) {
-      // Error handling is done in parent component
+      const errorMessage = err instanceof Error ? err.message : 'Error al actualizar el estado';
+      setApiError(errorMessage);
       console.error('Status update error:', err);
     }
   };
@@ -45,6 +49,16 @@ export function UpdateStatusModal({ creditRequest, onUpdate, onCancel, isLoading
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Actualizar Estado
           </h2>
+
+          {/* API Error Alert */}
+          {apiError && (
+            <Alert
+              type="error"
+              message={apiError}
+              onClose={() => setApiError('')}
+              className="mb-4"
+            />
+          )}
 
           <div className="mb-4">
             <p className="text-sm text-gray-600">Solicitud ID:</p>
@@ -74,10 +88,10 @@ export function UpdateStatusModal({ creditRequest, onUpdate, onCancel, isLoading
                 value={selectedStatus}
                 onChange={(e) => {
                   setSelectedStatus(e.target.value);
-                  setError('');
+                  setValidationError('');
                 }}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  error ? 'border-red-500' : 'border-gray-300'
+                  validationError ? 'border-red-500' : 'border-gray-300'
                 }`}
                 disabled={isLoading}
               >
@@ -88,8 +102,8 @@ export function UpdateStatusModal({ creditRequest, onUpdate, onCancel, isLoading
                   </option>
                 ))}
               </select>
-              {error && (
-                <p className="text-red-500 text-sm mt-1">{error}</p>
+              {validationError && (
+                <p className="text-red-500 text-sm mt-1">{validationError}</p>
               )}
             </div>
 

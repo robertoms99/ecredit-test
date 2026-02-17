@@ -71,7 +71,7 @@ export class ColombiaCreditEvaluator implements ICreditEvaluator {
     let recommendedAmount: number | undefined;
     if (!approved && monthlyIncome > 0) {
       const maxByDti = (monthlyIncome * 0.35 - currentDebt) * 12;
-      const maxByIncome = monthlyIncome * 8.33; // ~12% monthly payment
+      const maxByIncome = monthlyIncome * 8.33;
       recommendedAmount = Math.min(maxByDti, maxByIncome, COLOMBIA_CONFIG.amountLimit);
       recommendedAmount = Math.max(0, Math.floor(recommendedAmount));
     }

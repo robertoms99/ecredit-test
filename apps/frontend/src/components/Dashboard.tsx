@@ -9,14 +9,15 @@ import { CreditRequestDetailsModal } from './CreditRequestDetailsModal';
 import { UpdateStatusModal } from './UpdateStatusModal';
 import { StatusHistoryModal } from './StatusHistoryModal';
 import { useAuth } from '../hooks/useAuth';
+import { useNotification } from '../contexts/NotificationContext';
 
 
 
 export function Dashboard() {
   const { user, logout } = useAuth();
+  const { showError, showSuccess } = useNotification();
   const [requests, setRequests] = useState<CreditRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [total, setTotal] = useState(0);
   const [updatedIds, setUpdatedIds] = useState<Set<string>>(new Set());
@@ -35,7 +36,6 @@ export function Dashboard() {
   const loadRequests = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
       const response = await creditRequestsApi.list({
         country: selectedCountry || undefined,
         limit: 100,
@@ -43,12 +43,13 @@ export function Dashboard() {
       setRequests(response.data);
       setTotal(response.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar las solicitudes');
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar las solicitudes';
+      showError(errorMessage);
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [selectedCountry]);
+  }, [selectedCountry, showError]);
 
   useEffect(() => {
     loadRequests();
@@ -105,7 +106,6 @@ export function Dashboard() {
   const handleCreateRequest = async (data: CreateCreditRequestPayload) => {
     try {
       setIsCreating(true);
-      setError(null);
       // Remove userId from payload - it will be extracted from JWT token
       const { userId, ...payload } = data;
       const newRequest = await creditRequestsApi.create(payload);
@@ -117,7 +117,10 @@ export function Dashboard() {
       // Close form
       setShowCreateForm(false);
 
-      // Show success feedback
+      // Show success notification
+      showSuccess('Solicitud creada exitosamente');
+
+      // Show visual feedback
       setUpdatedIds((prev) => new Set(prev).add(newRequest.id));
       setTimeout(() => {
         setUpdatedIds((prev) => {
@@ -127,8 +130,7 @@ export function Dashboard() {
         });
       }, 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear la solicitud');
-      throw err; // Re-throw so form can handle it
+      throw err; // Re-throw so form can show error in modal
     } finally {
       setIsCreating(false);
     }
@@ -142,7 +144,8 @@ export function Dashboard() {
       setSelectedRequest(freshRequest);
       setShowDetailsModal(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar los detalles');
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar los detalles';
+      showError(errorMessage);
     }
   };
 
@@ -163,7 +166,6 @@ export function Dashboard() {
 
     try {
       setIsUpdatingStatus(true);
-      setError(null);
       const updatedRequest = await creditRequestsApi.updateStatus(selectedRequest.id, { 
         status: statusCode,
         reason 
@@ -178,7 +180,10 @@ export function Dashboard() {
       setShowUpdateStatusModal(false);
       setSelectedRequest(null);
 
-      // Show success feedback
+      // Show success notification
+      showSuccess('Estado actualizado exitosamente');
+
+      // Show visual feedback
       setUpdatedIds((prev) => new Set(prev).add(updatedRequest.id));
       setTimeout(() => {
         setUpdatedIds((prev) => {
@@ -188,8 +193,7 @@ export function Dashboard() {
         });
       }, 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar el estado');
-      throw err; // Re-throw so modal can handle it
+      throw err; // Re-throw so modal can show error
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -263,24 +267,6 @@ export function Dashboard() {
           />
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4 flex items-start gap-3">
-            <svg className="w-5 h-5 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            <span>{error}</span>
-            <button
-              onClick={() => setError(null)}
-              className="ml-auto text-red-700 hover:text-red-900"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </div>
-        )}
-
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center items-center py-12">
@@ -289,7 +275,7 @@ export function Dashboard() {
         )}
 
         {/* Empty State */}
-        {!loading && !error && requests.length === 0 && (
+        {!loading && requests.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg shadow-md">
             <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

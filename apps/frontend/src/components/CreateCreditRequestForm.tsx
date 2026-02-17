@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { CreateCreditRequestPayload } from '../types';
+import { Alert } from './Alert';
 
 interface CreateCreditRequestFormProps {
   onSubmit: (data: CreateCreditRequestPayload) => Promise<void>;
@@ -18,6 +19,7 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [apiError, setApiError] = useState<string>('');
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -44,6 +46,7 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setApiError('');
     
     if (!validateForm()) {
       return;
@@ -52,7 +55,8 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
     try {
       await onSubmit(formData);
     } catch (error) {
-      // Error handling is done in parent component
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear la solicitud';
+      setApiError(errorMessage);
       console.error('Form submission error:', error);
     }
   };
@@ -67,6 +71,16 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
           <p className="text-gray-600 text-sm mb-6">
             Crear solicitud a nombre del cliente
           </p>
+
+          {/* API Error Alert */}
+          {apiError && (
+            <Alert
+              type="error"
+              message={apiError}
+              onClose={() => setApiError('')}
+              className="mb-4"
+            />
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Country */}
