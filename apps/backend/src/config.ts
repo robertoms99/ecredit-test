@@ -6,7 +6,7 @@ export const config = {
     port: process.env.PORT || 3000,
   },
   cors: {
-    frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+    frontendUrl: process.env.FRONTEND_URL || "",
   },
   jwt: {
     secret: process.env.JWT_SECRET || "change-me-in-production-very-secret-key",

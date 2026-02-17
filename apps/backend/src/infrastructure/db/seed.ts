@@ -1,7 +1,7 @@
-import { RequestStatusCodes } from '../../domain/entities';
 import { db, schema } from './client';
 import { eq } from 'drizzle-orm';
 import { hashPassword } from '../auth/jwt';
+import { RequestStatusCodes } from '../../domain/entities';
 
 async function seed() {
   const statuses = [
@@ -26,7 +26,7 @@ async function seed() {
   // Create admin users
   // These users are administrators who create credit requests on behalf of clients
   // Each admin only sees the credit requests they created themselves
-  
+
   const adminUsers = [
     {
       email: 'admin1@ecredit.com',

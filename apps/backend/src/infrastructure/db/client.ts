@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schemas';
 
-const connectionString = process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/ecredit_dev';
+const connectionString = process.env.DATABASE_URL || ""
 const pool = new Pool({ connectionString });
 
 

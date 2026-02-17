@@ -13,6 +13,8 @@ Este simulador:
 
 ## 🚀 Inicio Rápido
 
+### Local Development
+
 ```bash
 # Instalar dependencias
 bun install
@@ -21,7 +23,22 @@ bun install
 bun run dev
 ```
 
-El servidor estará disponible en `http://localhost:5000`
+El servidor estará disponible en `http://localhost:3001`
+
+### Docker
+
+```bash
+# Build
+docker build -t ecredit-provider-sim:latest .
+
+# Run
+docker run -d \
+  --name ecredit-provider-sim \
+  -p 3001:3001 \
+  ecredit-provider-sim:latest
+```
+
+El servidor estará disponible en `http://localhost:3001`
 
 ## 👥 Usuarios de Prueba
 
@@ -187,3 +204,57 @@ El simulador muestra logs detallados:
 - Verifica el delay (2-8 segundos es normal)
 - Revisa los logs del provider-sim
 - Verifica que el `callback_url` sea accesible desde el simulador
+
+## 🐳 Docker
+
+### Build
+
+```bash
+# Desde la raíz del monorepo
+docker build -t ecredit-provider-sim:latest -f apps/provider-sim/Dockerfile apps/provider-sim/
+
+# O desde este directorio
+cd apps/provider-sim
+docker build -t ecredit-provider-sim:latest .
+```
+
+### Run
+
+```bash
+docker run -d \
+  --name ecredit-provider-sim \
+  -p 3001:3001 \
+  ecredit-provider-sim:latest
+
+# Ver logs
+docker logs -f ecredit-provider-sim
+
+# Health check
+curl http://localhost:3001/health
+```
+
+### Variables de Entorno
+
+- `PORT` - Puerto del servidor (default: 3001)
+- `NODE_ENV` - Entorno (default: production)
+
+### Especificaciones Docker
+
+- **Base Image:** oven/bun:1-alpine
+- **Tamaño:** ~100MB
+- **Puerto:** 3001
+- **User:** bunuser (non-root)
+- **Healthcheck:** /health endpoint cada 15s
+
+### Detener y Limpiar
+
+```bash
+# Detener
+docker stop ecredit-provider-sim
+
+# Eliminar contenedor
+docker rm ecredit-provider-sim
+
+# Eliminar imagen
+docker rmi ecredit-provider-sim:latest
+```

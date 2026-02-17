@@ -1,0 +1,46 @@
+# Git
+.git/
+.gitignore
+
+# Node modules
+node_modules/
+**/node_modules/
+
+# Build artifacts
+dist/
+build/
+**/dist/
+**/build/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.docker.example
+
+# Documentation
+*.md
+!README.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+tmp/
+temp/
+
+# Docker
+docker-compose*.yml
+Dockerfile
+.dockerignore
