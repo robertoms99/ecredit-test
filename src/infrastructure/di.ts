@@ -2,6 +2,8 @@
 import * as PgB from 'pg-boss';
 import { connectionString, db } from './db/client';
 import { config } from '../config';
+import { WebSocketServer } from './websocket/websocket-server';
+import { httpServer } from './http-server';
 
 import { CreditRequestRepository } from './adapters/repositories/credit-request-repository';
 import { RequestStatusRepository } from './adapters/repositories/request-status-repository';
@@ -24,6 +26,7 @@ import { StatusTransitionJob } from '../domain/jobs/status-transition-job';
 import { JobManager } from './jobs/jobs-manager';
 import { DatabaseNotificationListener } from './db/notification-listener';
 
+export const wsServer = new WebSocketServer(httpServer);
 
 const creditRequestRepository = new CreditRequestRepository(db);
 const requestStatusRepository = new RequestStatusRepository(db);
@@ -70,7 +73,8 @@ await jobManager.start();
 
 const dbNotificationListener = new DatabaseNotificationListener(
   connectionString,
-  jobManager
+  jobManager,
+  wsServer
 );
 
 await dbNotificationListener.start();

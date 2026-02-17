@@ -4,7 +4,7 @@
   "description": "Simulated banking providers (Bun + TS)",
   "type": "module",
   "scripts": {
-    "dev": "bun run src/server.ts"
+    "start": "bun run src/server.ts"
   },
   "dependencies": {
     "express": "^4.19.2"

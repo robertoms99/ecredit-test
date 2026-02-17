@@ -2,13 +2,18 @@ export const config = {
   db: {
     url: process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/ecredit",
   },
-  redis: {
-    url: process.env.REDIS_URL || "redis://localhost:6379",
-  },
   server: {
     port: process.env.PORT || 3000,
+  },
+  cors: {
+    frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET || "change-me-in-production-very-secret-key",
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   },
   realtime: {
     wsPath: "/ws",
   },
+  env: process.env.NODE_ENV || "development",
 };

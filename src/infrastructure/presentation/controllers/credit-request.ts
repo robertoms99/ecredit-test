@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { validator } from 'hono/validator'
 import { createCreditRequestUseCase, getCreditRequestUseCase, listCreditRequestsUseCase, updateCreditRequestStatusUseCase } from "../../di";
-import { 
+import {
   createCreditRequestSchema,
   getCreditRequestParamsSchema,
   listCreditRequestsQuerySchema,
@@ -9,8 +9,11 @@ import {
   updateCreditRequestStatusBodySchema
 } from "../schemas";
 import { AppError, validationError } from '../../../domain/errors';
+import { jwtMiddleware, getAuth } from '../middleware/auth';
 
 const router = new Hono()
+
+router.use('/*', jwtMiddleware);
 
 router.post("/",
   validator('json', (value, c) => {
@@ -24,13 +27,19 @@ router.post("/",
   async (c) => {
     try {
       const body = c.req.valid('json');
-      const saved = await createCreditRequestUseCase.execute(body);
+      const auth = getAuth(c);
+
+      const saved = await createCreditRequestUseCase.execute({
+        ...body,
+        userId: auth.userId,
+      });
+
       return c.json(saved, 201);
     } catch (error) {
       if (error instanceof AppError) {
-        return new Response(JSON.stringify(error.toResponse()), { 
-          status: error.status, 
-          headers: { 'Content-Type': 'application/json' } 
+        return new Response(JSON.stringify(error.toResponse()), {
+          status: error.status,
+          headers: { 'Content-Type': 'application/json' }
         });
       }
       throw error;
@@ -50,13 +59,26 @@ router.get('/:id',
   async (c) => {
     try {
       const { id } = c.req.valid('param');
+      const auth = getAuth(c);
+
       const req = await getCreditRequestUseCase.execute(id);
+
+      if (!req) {
+        return c.json({ error: 'Credit request not found' }, 404);
+      }
+
+      if (req.userId !== auth.userId) {
+        return c.json({
+          error: 'Forbidden - You can only view credit requests you created'
+        }, 403);
+      }
+
       return c.json(req);
     } catch (error) {
       if (error instanceof AppError) {
-        return new Response(JSON.stringify(error.toResponse()), { 
-          status: error.status, 
-          headers: { 'Content-Type': 'application/json' } 
+        return new Response(JSON.stringify(error.toResponse()), {
+          status: error.status,
+          headers: { 'Content-Type': 'application/json' }
         });
       }
       throw error;
@@ -76,13 +98,19 @@ router.get('/',
   async (c) => {
     try {
       const filters = c.req.valid('query');
-      const result = await listCreditRequestsUseCase.execute(filters);
+      const auth = getAuth(c);
+
+      const result = await listCreditRequestsUseCase.execute({
+        ...filters,
+        userId: auth.userId,
+      });
+
       return c.json(result);
     } catch (error) {
       if (error instanceof AppError) {
-        return new Response(JSON.stringify(error.toResponse()), { 
-          status: error.status, 
-          headers: { 'Content-Type': 'application/json' } 
+        return new Response(JSON.stringify(error.toResponse()), {
+          status: error.status,
+          headers: { 'Content-Type': 'application/json' }
         });
       }
       throw error;
@@ -90,7 +118,7 @@ router.get('/',
   }
 );
 
-router.put('/:id/status',
+router.patch('/:id/status',
   validator('param', (value, c) => {
     const parsed = updateCreditRequestStatusParamsSchema.safeParse(value);
     if (!parsed.success) {
@@ -111,18 +139,31 @@ router.put('/:id/status',
     try {
       const { id } = c.req.valid('param');
       const { status } = c.req.valid('json');
-      
+      const auth = getAuth(c);
+
+      const existingRequest = await getCreditRequestUseCase.execute(id);
+
+      if (!existingRequest) {
+        return c.json({ error: 'Credit request not found' }, 404);
+      }
+
+      if (existingRequest.userId !== auth.userId) {
+        return c.json({
+          error: 'Forbidden - You can only update credit requests you created'
+        }, 403);
+      }
+
       const updated = await updateCreditRequestStatusUseCase.execute({
         creditRequestId: id,
         statusCode: status
       });
-      
+
       return c.json(updated);
     } catch (error) {
       if (error instanceof AppError) {
-        return new Response(JSON.stringify(error.toResponse()), { 
-          status: error.status, 
-          headers: { 'Content-Type': 'application/json' } 
+        return new Response(JSON.stringify(error.toResponse()), {
+          status: error.status,
+          headers: { 'Content-Type': 'application/json' }
         });
       }
       throw error;

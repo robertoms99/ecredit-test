@@ -60,6 +60,7 @@ export class ProcessExternalBankDataUseCase {
 
     await this.creditRequestRepository.update(creditRequest.id, {
       statusId: evaluatingStatus.id,
+      updatedAt: new Date()
     });
   }
 }

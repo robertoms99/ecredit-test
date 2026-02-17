@@ -2,9 +2,10 @@ CREATE OR REPLACE FUNCTION notify_credit_request_status_change()
 RETURNS TRIGGER AS $$
 DECLARE
   status_code VARCHAR(32);
+  status_name VARCHAR(64);
   notification_payload TEXT;
 BEGIN
-  SELECT code INTO status_code
+  SELECT code, name INTO status_code, status_name
   FROM request_statuses
   WHERE id = NEW.status_id;
 
@@ -12,7 +13,9 @@ BEGIN
     notification_payload := json_build_object(
       'credit_request_id', NEW.id::text,
       'request_status_id', NEW.status_id::text,
-      'request_status_code', status_code
+      'request_status_code', status_code,
+      'request_status_name', status_name,
+      'updated_at', NEW.updated_at::text
     )::text;
 
     PERFORM pg_notify('credit_request_status_change', notification_payload);

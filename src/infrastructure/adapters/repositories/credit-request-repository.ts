@@ -11,7 +11,45 @@ export class CreditRequestRepository implements ICreditRequestRepository{
   async create(creditRequest: NewCreditRequest): Promise<CreditRequest> {
     try {
       const result = await this.db.insert(schema.creditRequests).values(creditRequest).returning();
-      return result[0];
+      const created = result[0];
+
+      // Fetch the complete record with status information via JOIN
+      const completeRecord = await this.db
+        .select({
+          creditRequest: schema.creditRequests,
+          statusId: schema.requestStatuses.id,
+          statusName: schema.requestStatuses.name,
+          statusCode: schema.requestStatuses.code,
+        })
+        .from(schema.creditRequests)
+        .leftJoin(schema.requestStatuses, eq(schema.creditRequests.statusId, schema.requestStatuses.id))
+        .where(eq(schema.creditRequests.id, created.id))
+        .limit(1);
+
+      if (!completeRecord[0]) {
+        throw new Error('Failed to fetch created credit request');
+      }
+
+      const record = completeRecord[0];
+
+      return {
+        ...record.creditRequest,
+        // Ensure dates are Date objects (Drizzle should handle this)
+        requestedAt: record.creditRequest.requestedAt instanceof Date
+          ? record.creditRequest.requestedAt
+          : new Date(record.creditRequest.requestedAt),
+        createdAt: record.creditRequest.createdAt instanceof Date
+          ? record.creditRequest.createdAt
+          : new Date(record.creditRequest.createdAt),
+        updatedAt: record.creditRequest.updatedAt instanceof Date
+          ? record.creditRequest.updatedAt
+          : new Date(record.creditRequest.updatedAt),
+        status: record.statusId && record.statusName ? {
+          id: record.statusId,
+          name: record.statusName,
+          code: record.statusCode,
+        } : null,
+      } as any;
     } catch (error: any) {
       throw new AppError('DATABASE_ERROR', 'Failed to create credit request', {
         error: error.message,
@@ -26,18 +64,31 @@ export class CreditRequestRepository implements ICreditRequestRepository{
           creditRequest: schema.creditRequests,
           statusId: schema.requestStatuses.id,
           statusName: schema.requestStatuses.name,
+          statusCode: schema.requestStatuses.code,
         })
         .from(schema.creditRequests)
         .leftJoin(schema.requestStatuses, eq(schema.creditRequests.statusId, schema.requestStatuses.id))
         .where(eq(schema.creditRequests.id, id));
-      
+
       if (!result[0]) return null;
 
+      const record = result[0];
+
       return {
-        ...result[0].creditRequest,
-        status: result[0].statusId && result[0].statusName ? {
-          id: result[0].statusId,
-          name: result[0].statusName,
+        ...record.creditRequest,
+        requestedAt: record.creditRequest.requestedAt instanceof Date
+          ? record.creditRequest.requestedAt
+          : new Date(record.creditRequest.requestedAt),
+        createdAt: record.creditRequest.createdAt instanceof Date
+          ? record.creditRequest.createdAt
+          : new Date(record.creditRequest.createdAt),
+        updatedAt: record.creditRequest.updatedAt instanceof Date
+          ? record.creditRequest.updatedAt
+          : new Date(record.creditRequest.updatedAt),
+        status: record.statusId && record.statusName ? {
+          id: record.statusId,
+          name: record.statusName,
+          code: record.statusCode,
         } : null,
       } as any;
   }
@@ -75,6 +126,10 @@ export class CreditRequestRepository implements ICreditRequestRepository{
         conditions.push(lte(schema.creditRequests.createdAt, new Date(filters.to)));
       }
 
+      if (filters.userId) {
+        conditions.push(eq(schema.creditRequests.userId, filters.userId));
+      }
+
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
       const results = await this.db
@@ -82,6 +137,7 @@ export class CreditRequestRepository implements ICreditRequestRepository{
           creditRequest: schema.creditRequests,
           statusId: schema.requestStatuses.id,
           statusName: schema.requestStatuses.name,
+          statusCode: schema.requestStatuses.code,
         })
         .from(schema.creditRequests)
         .leftJoin(schema.requestStatuses, eq(schema.creditRequests.statusId, schema.requestStatuses.id))
@@ -92,9 +148,20 @@ export class CreditRequestRepository implements ICreditRequestRepository{
 
       return results.map(r => ({
         ...r.creditRequest,
+        // Ensure dates are Date objects
+        requestedAt: r.creditRequest.requestedAt instanceof Date
+          ? r.creditRequest.requestedAt
+          : new Date(r.creditRequest.requestedAt),
+        createdAt: r.creditRequest.createdAt instanceof Date
+          ? r.creditRequest.createdAt
+          : new Date(r.creditRequest.createdAt),
+        updatedAt: r.creditRequest.updatedAt instanceof Date
+          ? r.creditRequest.updatedAt
+          : new Date(r.creditRequest.updatedAt),
         status: r.statusId && r.statusName ? {
           id: r.statusId,
           name: r.statusName,
+          code: r.statusCode,
         } : null,
       })) as any;
     } catch (error: any) {
@@ -124,6 +191,10 @@ export class CreditRequestRepository implements ICreditRequestRepository{
 
       if (filters.to) {
         conditions.push(lte(schema.creditRequests.createdAt, new Date(filters.to)));
+      }
+
+      if (filters.userId) {
+        conditions.push(eq(schema.creditRequests.userId, filters.userId));
       }
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

@@ -1,6 +1,7 @@
 import { RequestStatusCodes } from '../../domain/entities';
 import { db, schema } from './client';
 import { eq } from 'drizzle-orm';
+import { hashPassword } from '../auth/jwt';
 
 async function seed() {
   const statuses = [
@@ -22,69 +23,59 @@ async function seed() {
       .onConflictDoNothing();
   }
 
-  const adminEmail = 'admin@example.com';
-  const existing = await db.select().from(schema.users).where(eq(schema.users.email, adminEmail));
-  if (existing.length === 0) {
-    await db.insert(schema.users).values({
-      email: adminEmail,
-      passwordHash: 'changeme123456',
-      fullName: 'Admin User',
-      role: 'admin',
-      isActive: true,
-    });
-  }
-
-  // Add test users for each country (matching provider-sim test users)
-  // Note: documentId is provided when creating credit request, not stored in user table
-  const testUsers = [
-    // Mexico test users
+  // Create admin users
+  // These users are administrators who create credit requests on behalf of clients
+  // Each admin only sees the credit requests they created themselves
+  
+  const adminUsers = [
     {
-      email: 'good.mexico@test.com',
-      passwordHash: 'test123456',
-      fullName: 'Good Mexico User',
-      role: 'client' as const,
-      isActive: true,
+      email: 'admin1@ecredit.com',
+      password: 'admin123456',
+      fullName: 'Administrador Principal',
+      role: 'admin' as const,
     },
     {
-      email: 'bad.mexico@test.com',
-      passwordHash: 'test123456',
-      fullName: 'Bad Mexico User',
-      role: 'client' as const,
-      isActive: true,
-    },
-    // Colombia test users
-    {
-      email: 'good.colombia@test.com',
-      passwordHash: 'test123456',
-      fullName: 'Good Colombia User',
-      role: 'client' as const,
-      isActive: true,
-    },
-    {
-      email: 'bad.colombia@test.com',
-      passwordHash: 'test123456',
-      fullName: 'Bad Colombia User',
-      role: 'client' as const,
-      isActive: true,
+      email: 'admin2@ecredit.com',
+      password: 'admin123456',
+      fullName: 'Administrador Secundario',
+      role: 'admin' as const,
     },
   ];
 
-  for (const user of testUsers) {
-    const existingUser = await db.select().from(schema.users).where(eq(schema.users.email, user.email));
-    if (existingUser.length === 0) {
-      await db.insert(schema.users).values(user);
-      console.log(`✓ Created test user: ${user.email}`);
+  for (const admin of adminUsers) {
+    const existing = await db.select().from(schema.users).where(eq(schema.users.email, admin.email));
+    if (existing.length === 0) {
+      const hashedPassword = await hashPassword(admin.password);
+      await db.insert(schema.users).values({
+        email: admin.email,
+        passwordHash: hashedPassword,
+        fullName: admin.fullName,
+        role: admin.role,
+        isActive: true,
+      });
+      console.log(`✓ Created admin user: ${admin.email}`);
     }
   }
 
   console.log('\n✅ Seed completed');
-  console.log('\n📋 Test Users & Document IDs (for provider-sim):');
+  console.log('\n📋 Administrator Users:');
+  console.log('   These administrators manage credit requests on behalf of clients.');
+  console.log('   Each admin can only see their own created requests.\n');
+  console.log('   Admin 1:');
+  console.log('     - Email: admin1@ecredit.com');
+  console.log('     - Password: admin123456');
+  console.log('');
+  console.log('   Admin 2:');
+  console.log('     - Email: admin2@ecredit.com');
+  console.log('     - Password: admin123456');
+  console.log('');
+  console.log('📝 Test Document IDs (for provider-sim):');
   console.log('   Mexico (MX):');
-  console.log('     - good.mexico@test.com    → Use CURP: GOMC860101HDFRRA09 (Expected: APPROVED, score 750)');
-  console.log('     - bad.mexico@test.com     → Use CURP: BAPC901215MDFRRS03 (Expected: REJECTED, score 450)');
+  console.log('     - CURP: GOMC860101HDFRRA09 → Expected: APPROVED, score 750');
+  console.log('     - CURP: BAPC901215MDFRRS03 → Expected: REJECTED, score 450');
   console.log('   Colombia (CO):');
-  console.log('     - good.colombia@test.com  → Use CC: 1234567890 (Expected: APPROVED, score 680)');
-  console.log('     - bad.colombia@test.com   → Use CC: 9876543210 (Expected: REJECTED, score 400)');
+  console.log('     - CC: 1234567890 → Expected: APPROVED, score 680');
+  console.log('     - CC: 9876543210 → Expected: REJECTED, score 400');
   console.log('');
 }
 

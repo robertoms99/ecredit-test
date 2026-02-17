@@ -5,6 +5,7 @@ export interface ListCreditRequestsFilters {
   status?: string;
   from?: string;
   to?: string;
+  userId?: string;
   limit?: number;
   offset?: number;
 }

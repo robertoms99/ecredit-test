@@ -2,6 +2,7 @@ export type ErrorCode =
   | 'VALIDATION_FAILED'
   | 'NOT_FOUND'
   | 'AUTH_REQUIRED'
+  | 'AUTH_FAILED'
   | 'FORBIDDEN'
   | 'CONFLICT'
   | 'RATE_LIMITED'
@@ -35,6 +36,7 @@ const CATALOG: Record<ErrorCode, ErrorCatalogEntry> = {
   VALIDATION_FAILED: { status: 400, defaultMessage: 'Validation failed', requireDetails: true },
   NOT_FOUND: { status: 404, defaultMessage: 'Resource not found' },
   AUTH_REQUIRED: { status: 401, defaultMessage: 'Authentication required' },
+  AUTH_FAILED: { status: 401, defaultMessage: 'Authentication failed' },
   FORBIDDEN: { status: 403, defaultMessage: 'Forbidden' },
   CONFLICT: { status: 409, defaultMessage: 'Conflict' },
   RATE_LIMITED: { status: 429, defaultMessage: 'Too many requests' },

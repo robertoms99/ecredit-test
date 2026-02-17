@@ -62,7 +62,7 @@ const TEST_USERS = {
 };
 
 interface PendingRequest {
-  requestId: string;
+  correlationId: string;
   documentId: string;
   creditRequestId: string;
   callbackUrl: string;
@@ -88,10 +88,10 @@ app.post('/providers/mx', (req: Request, res: Response) => {
     });
   }
 
-  const requestId = randomUUID();
+  const correlationId = randomUUID();
 
-  pendingRequests.set(requestId, {
-    requestId,
+  pendingRequests.set(correlationId, {
+    correlationId,
     documentId: document_id,
     creditRequestId: credit_request_id,
     callbackUrl: callback_url,
@@ -100,16 +100,16 @@ app.post('/providers/mx', (req: Request, res: Response) => {
   });
 
   console.log(`[MX Provider] Received request for CURP: ${document_id}`);
-  console.log(`[MX Provider] Generated external request ID: ${requestId}`);
+  console.log(`[MX Provider] Generated external correlation ID: ${correlationId}`);
   console.log(`[MX Provider] Will callback to: ${callback_url}`);
 
   const delay = Math.floor(Math.random() * 6000) + 2000;
   setTimeout(() => {
-    processCallback(requestId);
+    processCallback(correlationId);
   }, delay);
 
   res.status(202).json({
-    request_id: requestId,
+    correlation_id: correlationId,
     status: 'PENDING',
     message: 'Solicitud aceptada, los datos se enviarán al webhook',
     estimated_time_seconds: Math.floor(delay / 1000),
@@ -132,10 +132,10 @@ app.post('/providers/co', (req: Request, res: Response) => {
     });
   }
 
-  const requestId = randomUUID();
+  const correlationId = randomUUID();
 
-  pendingRequests.set(requestId, {
-    requestId,
+  pendingRequests.set(correlationId, {
+    correlationId,
     documentId: document_id,
     creditRequestId: credit_request_id,
     callbackUrl: callback_url,
@@ -144,26 +144,26 @@ app.post('/providers/co', (req: Request, res: Response) => {
   });
 
   console.log(`[CO Provider] Received request for CC: ${document_id}`);
-  console.log(`[CO Provider] Generated external request ID: ${requestId}`);
+  console.log(`[CO Provider] Generated external correlation ID: ${correlationId}`);
   console.log(`[CO Provider] Will callback to: ${callback_url}`);
 
   const delay = Math.floor(Math.random() * 6000) + 2000;
   setTimeout(() => {
-    processCallback(requestId);
+    processCallback(correlationId);
   }, delay);
 
   res.status(202).json({
-    request_id: requestId,
+    correlation_id: correlationId,
     status: 'PENDING',
     message: 'Solicitud aceptada, los datos se enviarán al webhook',
     estimated_time_seconds: Math.floor(delay / 1000),
   });
 });
 
-async function processCallback(requestId: string) {
-  const request = pendingRequests.get(requestId);
+async function processCallback(correlationId: string) {
+  const request = pendingRequests.get(correlationId);
   if (!request) {
-    console.error(`[Provider] Request ${requestId} not found in pending requests`);
+    console.error(`[Provider] Request correlation ${correlationId} not found in pending requests`);
     return;
   }
 
@@ -184,7 +184,7 @@ async function processCallback(requestId: string) {
   if (request.country === 'MX') {
     const mxProfile = userProfile as typeof TEST_USERS.MX[keyof typeof TEST_USERS.MX];
     payload = {
-      request_id: requestId,
+      correlation_id: correlationId,
       curp: request.documentId,
       datos_personales: {
         nombre_completo: mxProfile.nombre_completo,
@@ -215,7 +215,7 @@ async function processCallback(requestId: string) {
   } else {
     const coProfile = userProfile as typeof TEST_USERS.CO[keyof typeof TEST_USERS.CO];
     payload = {
-      request_id: requestId,
+      correlation_id: correlationId,
       cedula: request.documentId,
       informacion_basica: {
         nombre: coProfile.nombre,
@@ -246,7 +246,7 @@ async function processCallback(requestId: string) {
     };
   }
 
-  console.log(`\n[${request.country} Provider] Sending callback for request ${requestId}`);
+  console.log(`\n[${request.country} Provider] Sending callback for request ${correlationId}`);
   console.log(`[${request.country} Provider] Document: ${request.documentId}`);
   console.log(`[${request.country} Provider] Callback URL: ${request.callbackUrl}`);
 
@@ -256,14 +256,13 @@ async function processCallback(requestId: string) {
       headers: {
         'Content-Type': 'application/json',
         'X-Provider-Country': request.country,
-        'X-Request-Id': requestId,
       },
       body: JSON.stringify(payload),
     });
 
     if (response.ok) {
       console.log(`[${request.country} Provider] ✓ Callback successful (status ${response.status})`);
-      pendingRequests.delete(requestId);
+      pendingRequests.delete(correlationId);
     } else {
       const text = await response.text();
       console.error(

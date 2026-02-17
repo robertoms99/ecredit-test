@@ -59,6 +59,7 @@ export class EvaluatingStatusTransition implements IStatusTransitionStrategy {
 
     await this.creditRequestRepository.update(creditRequest.id, {
       statusId: finalStatus.id,
+      updatedAt: new Date()
     });
 
     console.log(

@@ -38,6 +38,7 @@ export class CreatedStatusTransition implements IStatusTransitionStrategy {
 
     await this.creditRequestRepository.update(creditRequest.id, {
       statusId: newStatus.id,
+      updatedAt: new Date()
     });
   }
 }

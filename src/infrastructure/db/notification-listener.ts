@@ -1,11 +1,14 @@
 import { Client } from 'pg';
 import type { IJobManager } from '../../domain/ports/jobs';
 import type { RequestStatusCodes } from '../../domain/entities';
+import type { WebSocketServer } from '../websocket/websocket-server';
 
 interface CreditRequestStatusChangePayload {
   credit_request_id: string;
   request_status_id: string;
   request_status_code: RequestStatusCodes;
+  request_status_name: string;
+  updated_at: string;
 }
 
 export class DatabaseNotificationListener {
@@ -14,7 +17,8 @@ export class DatabaseNotificationListener {
 
   constructor(
     private readonly connectionString: string,
-    private readonly jobManager: IJobManager
+    private readonly jobManager: IJobManager,
+    private readonly wsServer?: WebSocketServer
   ) {
     this.client = new Client({ connectionString: this.connectionString });
   }
@@ -35,6 +39,7 @@ export class DatabaseNotificationListener {
       this.client.on('notification', async (msg) => {
         if (msg.channel === 'credit_request_status_change' && msg.payload) {
           try {
+
             const payload: CreditRequestStatusChangePayload = JSON.parse(msg.payload);
 
             console.log(
@@ -46,6 +51,19 @@ export class DatabaseNotificationListener {
             console.log(
               `[DB Listener] Emitted job for credit request ${payload.credit_request_id}`
             );
+
+            if (this.wsServer) {
+              this.wsServer.emitCreditRequestUpdate({
+                creditRequestId: payload.credit_request_id,
+                statusId: payload.request_status_id,
+                statusName: payload.request_status_name,
+                updatedAt: payload.updated_at,
+                statusCode: payload.request_status_code
+              });
+              console.log(
+                `[DB Listener] Emitted WebSocket event for credit request ${payload.credit_request_id}`
+              );
+            }
           } catch (error: any) {
             console.error('[DB Listener] Error processing notification:', error.message);
           }

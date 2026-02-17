@@ -16,6 +16,24 @@ export class CreateCreditRequestUseCase {
   ) {}
 
   async execute(input: ICreateCreditRequestUseCaseInput): Promise<CreditRequest> {
+    await this.validate(input)
+
+    const requestStatus = await this.requestStatusRepository.getStatusByCode(
+      this.initialRequestStatusCode
+    );
+
+    const newCreditRequest: NewCreditRequest = {
+      ...input,
+      statusId: requestStatus.id,
+      requestedAt: new Date(),
+    };
+
+    const createdCreditRequest = await this.creditRequestRepository.create(newCreditRequest);
+
+    return createdCreditRequest;
+  }
+
+  private async validate(input: ICreateCreditRequestUseCaseInput): Promise<void> {
     if (!this.countryStrategyRegistry.isSupported(input.country)) {
       throw new AppError(
         'COUNTRY_NOT_SUPPORTED',
@@ -52,20 +70,6 @@ export class CreateCreditRequestUseCase {
         }
       );
     }
-
-    const requestStatus = await this.requestStatusRepository.getStatusByCode(
-      this.initialRequestStatusCode
-    );
-
-    const newCreditRequest: NewCreditRequest = {
-      ...input,
-      statusId: requestStatus.id,
-      requestedAt: new Date(),
-    };
-
-    const createdCreditRequest = await this.creditRequestRepository.create(newCreditRequest);
-
-    return createdCreditRequest;
   }
 
   private validateName(name: string): void {

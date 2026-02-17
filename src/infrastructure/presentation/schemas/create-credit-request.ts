@@ -20,7 +20,8 @@ export const createCreditRequestSchema = z.object({
     .positive("Monthly income must be positive")
     .finite("Monthly income must be a finite number"),
   userId: z.string()
-    .uuid("User ID must be a valid UUID"),
+    .uuid("User ID must be a valid UUID")
+    .optional(),
 });
 
 export type CreateCreditRequestInput = z.infer<typeof createCreditRequestSchema>;

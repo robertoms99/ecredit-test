@@ -28,8 +28,8 @@ export class ColombiaBankDataProvider implements IBankDataProvider {
 
       const data = response.body;
 
-      if (!data.request_id) {
-        throw new AppError('PROVIDER_INVALID_RESPONSE', 'Provider did not return request_id', {
+      if (!data.correlation_id) {
+        throw new AppError('PROVIDER_INVALID_RESPONSE', 'Provider did not return correlation_id', {
           country: 'CO',
           documentId,
           creditRequestId,
@@ -38,7 +38,7 @@ export class ColombiaBankDataProvider implements IBankDataProvider {
       }
 
       return {
-        externalRequestId: data.request_id,
+        externalRequestId: data.correlation_id,
         providerName: COLOMBIA_CONFIG.providerName,
         fetchStatus: 'PENDING',
       };

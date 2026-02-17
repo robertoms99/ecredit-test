@@ -11,7 +11,7 @@ router.post("/process-bank-data",
     const parsed = processBankDataSchema.safeParse(value)
     if (!parsed.success) {
       const details = parsed.error.flatten();
-      throw validationError('Missing or invalid request_id', details);
+      throw validationError('Missing or invalid correlation_id', details);
     }
     return parsed.data
   })
@@ -20,7 +20,7 @@ router.post("/process-bank-data",
     const body = await c.req.json();
 
     await processExternalBankDataUseCase.execute({
-      externalRequestId: body.request_id,
+      externalRequestId: body.correlation_id,
       payload: body,
     });
 

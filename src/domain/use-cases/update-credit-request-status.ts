@@ -47,16 +47,17 @@ export class UpdateCreditRequestStatusUseCase {
       throw new AppError(
         'INVALID_STATUS_TRANSITION',
         `Cannot change status from final state ${currentStatus.code}`,
-        { 
+        {
           currentStatus: currentStatus.code,
           requestedStatus: statusCode,
-          creditRequestId 
+          creditRequestId
         }
       );
     }
 
     const updated = await this.creditRequestRepository.update(creditRequestId, {
       statusId: status.id,
+      updatedAt: new Date()
     });
 
     return updated;
