@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "vite preview"
+    "start": "vite preview",
+    "deploy": "wrangler pages deploy"
   },
   "dependencies": {
     "date-fns": "^3.3.1",
