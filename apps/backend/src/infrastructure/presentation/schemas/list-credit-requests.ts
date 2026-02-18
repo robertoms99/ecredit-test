@@ -3,6 +3,7 @@ import z from "zod";
 export const listCreditRequestsQuerySchema = z.object({
   country: z.string().length(2).optional(),
   status: z.string().uuid().optional(),
+  documentId: z.string().min(1).max(64).optional(),
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
   limit: z.coerce.number().int().min(1).max(100).optional().default(50),

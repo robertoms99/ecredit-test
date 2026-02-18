@@ -5,6 +5,7 @@ export interface CountryInfo {
   name: string;
   icon: string;
   currency: string;
+  documentIdLabel: string;
 }
 
 export class ListCountriesUseCase {
@@ -22,6 +23,7 @@ export class ListCountriesUseCase {
         name: config.name,
         icon: config.icon,
         currency: config.currency,
+        documentIdLabel: config.documentIdLabel,
       };
     });
   }

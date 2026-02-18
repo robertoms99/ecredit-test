@@ -33,6 +33,7 @@ export const creditRequestsApi = {
   async list(filters?: {
     country?: string;
     status?: string;
+    documentId?: string;
     from?: string;
     to?: string;
     limit?: number;
@@ -42,6 +43,7 @@ export const creditRequestsApi = {
 
     if (filters?.country) params.append('country', filters.country);
     if (filters?.status) params.append('status', filters.status);
+    if (filters?.documentId) params.append('documentId', filters.documentId);
     if (filters?.from) params.append('from', filters.from);
     if (filters?.to) params.append('to', filters.to);
     if (filters?.limit) params.append('limit', filters.limit.toString());

@@ -10,6 +10,8 @@ interface Props {
   statuses: RequestStatus[];
   searchId: string;
   onSearchIdChange: (id: string) => void;
+  searchDocumentId: string;
+  onSearchDocumentIdChange: (documentId: string) => void;
 }
 
 export function AdvancedFilters({
@@ -22,6 +24,8 @@ export function AdvancedFilters({
   statuses,
   searchId,
   onSearchIdChange,
+  searchDocumentId,
+  onSearchDocumentIdChange,
 }: Props) {
   // Get today's date in local timezone (YYYY-MM-DD format)
   const getTodayLocal = (): string => {
@@ -33,7 +37,7 @@ export function AdvancedFilters({
   };
 
   const today = getTodayLocal();
-  const hasFilters = dateFrom || dateTo || selectedStatus || searchId;
+  const hasFilters = dateFrom || dateTo || selectedStatus || searchId || searchDocumentId;
 
   return (
     <div className="flex flex-wrap gap-4 items-end">
@@ -49,6 +53,22 @@ export function AdvancedFilters({
           onChange={(e) => onSearchIdChange(e.target.value)}
           placeholder="UUID de la solicitud"
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-80"
+        />
+      </div>
+
+      {/* Search by Document ID */}
+      <div className="flex flex-col">
+        <label htmlFor="search-document-id" className="text-sm font-medium text-gray-700 mb-1">
+          Documento de Identidad
+        </label>
+        <input
+          id="search-document-id"
+          type="text"
+          value={searchDocumentId}
+          onChange={(e) => onSearchDocumentIdChange(e.target.value)}
+          placeholder="CURP, Cédula, etc."
+          disabled={!!searchId}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-52 disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
       </div>
 
@@ -114,6 +134,7 @@ export function AdvancedFilters({
             onDateToChange('');
             onStatusChange('');
             onSearchIdChange('');
+            onSearchDocumentIdChange('');
           }}
           className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
         >

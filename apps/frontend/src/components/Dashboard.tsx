@@ -24,6 +24,7 @@ export function Dashboard() {
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
   const [searchId, setSearchId] = useState<string>('');
+  const [searchDocumentId, setSearchDocumentId] = useState<string>('');
   const [statuses, setStatuses] = useState<RequestStatus[]>([]);
   const [total, setTotal] = useState(0);
   const [updatedIds, setUpdatedIds] = useState<Set<string>>(new Set());
@@ -67,6 +68,7 @@ export function Dashboard() {
       const response = await creditRequestsApi.list({
         country: selectedCountry || undefined,
         status: selectedStatus || undefined,
+        documentId: searchDocumentId || undefined,
         from: dateFrom ? new Date(dateFrom).toISOString() : undefined,
         to: dateTo ? new Date(dateTo + 'T23:59:59').toISOString() : undefined,
         limit: 100,
@@ -80,7 +82,7 @@ export function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCountry, selectedStatus, dateFrom, dateTo, searchId, showError]);
+  }, [selectedCountry, selectedStatus, dateFrom, dateTo, searchId, searchDocumentId, showError]);
 
   useEffect(() => {
     loadRequests();
@@ -166,6 +168,7 @@ export function Dashboard() {
       setDateFrom('');
       setDateTo('');
       setSearchId('');
+      setSearchDocumentId('');
 
       // Add new request to the list
       setRequests((prev) => [newRequest, ...prev]);
@@ -333,6 +336,8 @@ export function Dashboard() {
               statuses={statuses}
               searchId={searchId}
               onSearchIdChange={setSearchId}
+              searchDocumentId={searchDocumentId}
+              onSearchDocumentIdChange={setSearchDocumentId}
             />
           </div>
         </div>

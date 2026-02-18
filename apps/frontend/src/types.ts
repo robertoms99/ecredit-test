@@ -22,6 +22,7 @@ export interface Country {
   name: string;
   icon: string;
   currency: string;
+  documentIdLabel: string;
 }
 
 export interface ListCreditRequestsResponse {

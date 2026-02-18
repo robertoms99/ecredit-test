@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { CreateCreditRequestPayload } from '../types';
 import { Alert } from './Alert';
 import { useCountries } from '../contexts/CountriesContext';
@@ -13,12 +13,19 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
   const { countries, isLoading: countriesLoading, getCountryByCode } = useCountries();
   
   const [formData, setFormData] = useState<CreateCreditRequestPayload>({
-    country: countries[0]?.code || 'MX',
+    country: '',
     fullName: '',
     documentId: '',
     requestedAmount: 0,
     monthlyIncome: 0,
   });
+
+  // Set default country when countries are loaded
+  useEffect(() => {
+    if (countries.length > 0 && !formData.country) {
+      setFormData(prev => ({ ...prev, country: countries[0].code }));
+    }
+  }, [countries, formData.country]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [apiError, setApiError] = useState<string>('');
@@ -141,7 +148,7 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.documentId ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder={formData.country === 'MX' ? 'CURP' : 'Cédula'}
+                placeholder={selectedCountry?.documentIdLabel || 'Documento de identidad'}
                 disabled={isLoading}
               />
               {errors.documentId && (

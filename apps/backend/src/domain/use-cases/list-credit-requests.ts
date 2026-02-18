@@ -25,6 +25,7 @@ export class ListCreditRequestsUseCase {
         from: filters.from,
         to: filters.to,
         userId: filters.userId,
+        documentId: filters.documentId,
       }),
     ]);
 

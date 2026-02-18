@@ -127,6 +127,7 @@ export const openApiSpec = {
         parameters: [
           { name: 'country', in: 'query', schema: { type: 'string', minLength: 2, maxLength: 2 }, description: 'Código de país (MX, CO)' },
           { name: 'status', in: 'query', schema: { type: 'string', format: 'uuid' }, description: 'ID del estado' },
+          { name: 'documentId', in: 'query', schema: { type: 'string', minLength: 1, maxLength: 64 }, description: 'Documento de identidad (búsqueda parcial)' },
           { name: 'from', in: 'query', schema: { type: 'string', format: 'date-time' }, description: 'Fecha desde' },
           { name: 'to', in: 'query', schema: { type: 'string', format: 'date-time' }, description: 'Fecha hasta' },
           { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100, default: 50 } },
@@ -347,6 +348,7 @@ export const openApiSpec = {
           name: { type: 'string', example: 'México' },
           icon: { type: 'string', example: '🇲🇽', description: 'Emoji de bandera' },
           currency: { type: 'string', example: 'MXN', description: 'Código de moneda' },
+          documentIdLabel: { type: 'string', example: 'CURP', description: 'Etiqueta del documento de identidad' },
         },
       },
       User: {

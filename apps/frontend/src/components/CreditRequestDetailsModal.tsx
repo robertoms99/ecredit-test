@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { CreditRequest } from '../types';
+import { useCountries } from '../contexts/CountriesContext';
 
 interface CreditRequestDetailsModalProps {
   creditRequest: CreditRequest;
@@ -7,11 +8,14 @@ interface CreditRequestDetailsModalProps {
 }
 
 export function CreditRequestDetailsModal({ creditRequest, onClose }: CreditRequestDetailsModalProps) {
+  const { getCountryByCode } = useCountries();
+  const country = getCountryByCode(creditRequest.country);
+
   const formatCurrency = (amount: number) => {
-    const currency = creditRequest.country === 'MX' ? 'MXN' : 'COP';
+    const currencyCode = country?.currency || 'USD';
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
-      currency,
+      currency: currencyCode,
     }).format(amount);
   };
 
@@ -79,7 +83,7 @@ export function CreditRequestDetailsModal({ creditRequest, onClose }: CreditRequ
               <div>
                 <label className="text-sm font-medium text-gray-600">País</label>
                 <p className="text-gray-900 mt-1">
-                  {creditRequest.country === 'MX' ? '🇲🇽 México' : '🇨🇴 Colombia'}
+                  {country ? `${country.icon} ${country.name}` : creditRequest.country}
                 </p>
               </div>
 

@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, sql } from "drizzle-orm";
+import { eq, and, gte, lte, sql, ilike } from "drizzle-orm";
 import { CreditRequest, NewCreditRequest } from "../../../domain/entities/credit-request"
 import { ICreditRequestRepository, ListCreditRequestsFilters } from "../../../domain/ports/repositories/credit-request-repository"
 import { schema } from "../../db/client";
@@ -129,6 +129,10 @@ export class CreditRequestRepository implements ICreditRequestRepository{
         conditions.push(eq(schema.creditRequests.userId, filters.userId));
       }
 
+      if (filters.documentId) {
+        conditions.push(ilike(schema.creditRequests.documentId, `%${filters.documentId}%`));
+      }
+
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
       const results = await this.db
@@ -193,6 +197,10 @@ export class CreditRequestRepository implements ICreditRequestRepository{
 
       if (filters.userId) {
         conditions.push(eq(schema.creditRequests.userId, filters.userId));
+      }
+
+      if (filters.documentId) {
+        conditions.push(ilike(schema.creditRequests.documentId, `%${filters.documentId}%`));
       }
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

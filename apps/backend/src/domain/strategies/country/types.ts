@@ -20,6 +20,7 @@ export interface CountryConfig {
   currency: string;
   providerUrl: string;
   providerName: string;
+  documentIdLabel: string;
   documentIdPattern?: RegExp;
   minCreditScore?: number;
   maxDebtToIncomeRatio?: number;
