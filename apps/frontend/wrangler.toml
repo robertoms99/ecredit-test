@@ -1,6 +1,0 @@
-name = "ecredit-test-web"
-pages_build_output_dir = "./dist"
-
-[vars]
-VITE_API_URL="https://api.robertomolina.dev"
-VITE_NODE_ENV="production"
