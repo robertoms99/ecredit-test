@@ -5,19 +5,6 @@ echo "🚀Starting eCredit Backend..."
 
 echo "⏳ Waiting for database..."
 
-max_attempts=30
-attempt=0
-
-until nc -z $DB_HOST $DB_PORT 2>/dev/null || [ $attempt -eq $max_attempts ]; do
-  attempt=$((attempt + 1))
-  echo "  Attempt $attempt/$max_attempts - Database not ready yet..."
-  sleep 2
-done
-
-if [ $attempt -eq $max_attempts ]; then
-  echo "❌ Database connection timeout"
-  exit 1
-fi
 
 echo "✅ Database is ready"
 
