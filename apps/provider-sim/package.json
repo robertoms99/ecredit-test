@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "bun run src/server.ts",
     "build": "bun build src/server.ts --target=bun --outdir=dist",
-    "start": "NODE_ENV=production bun dist/server.js"
+    "start": "NODE_ENV=production bun dist/server.js",
+    "deploy": "bun run build && wrangler pages deploy"
   },
   "dependencies": {
     "express": "^4.19.2"
