@@ -23,7 +23,7 @@ ENV PROVIDER_PORT=3001
 
 USER bunuser
 
-EXPOSE 80
+EXPOSE 3001
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:3001/health || exit 1
