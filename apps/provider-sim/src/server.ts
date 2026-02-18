@@ -304,9 +304,9 @@ app.get('/test-users', (_req: Request, res: Response) => {
   });
 });
 
-const PORT = +(process.env.PROVIDER_PORT || 5000);
+const PORT = process.env.PROVIDER_PORT || 5000;
 
-app.listen(PORT,"0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log(`\n🚀 Provider Simulator running on http://localhost:${PORT}`);
   console.log(`\n📋 Available endpoints:`);
   console.log(`   POST http://localhost:${PORT}/providers/mx - Mexico provider`);
