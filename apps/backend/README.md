@@ -125,19 +125,6 @@ curl http://localhost:3000/api/credit-requests \
   -H "Authorization: Bearer <token>"
 ```
 
-## Jobs en Background
-
-El sistema procesa trabajos asíncronos con pg-boss:
-
-- **status-transition** - Transiciones automáticas de estado
-- **webhook-notification** - Notificaciones a webhooks
-
-Para ejecutar el worker:
-
-```bash
-bun worker
-```
-
 ## Docker
 
 ```bash
