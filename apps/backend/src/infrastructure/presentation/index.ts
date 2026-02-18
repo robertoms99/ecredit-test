@@ -2,12 +2,14 @@ import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
+import { swaggerUI } from "@hono/swagger-ui";
 import creditRequestRouter from "./controllers/credit-request";
 import requestStatusRouter from "./controllers/request-status";
 import webhookRouter from "./controllers/webhook";
 import authController from "./controllers/auth";
 import { AppError, internalError } from "../../domain/errors";
 import { config } from "../../config";
+import { openApiSpec } from "./openapi";
 
 
 const app = new Hono()
@@ -29,6 +31,9 @@ const app = new Hono()
   })
 
 app.get('/health', (c) => c.json({ status: 'ok' }));
+
+app.get('/docs', swaggerUI({ url: '/docs/openapi.json' }));
+app.get('/docs/openapi.json', (c) => c.json(openApiSpec));
 
 app.basePath("/api")
   .route("/auth", authController)

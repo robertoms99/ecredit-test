@@ -1,8 +1,12 @@
 import express, { type Request, type Response } from 'express';
+import swaggerUi from 'swagger-ui-express';
 import { randomUUID } from 'crypto';
+import { openApiSpec } from './openapi';
 
 const app = express();
 app.use(express.json());
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec as swaggerUi.JsonObject));
 
 const TEST_USERS = {
   MX: {
