@@ -15,21 +15,21 @@ authController.post('/login', async (c: Context) => {
     const { email, password } = body;
 
     if (!email || !password) {
-      return c.json({ error: 'Email and password are required' }, 400);
+      return c.json({ error: 'Email y contraseña son requeridos' }, 400);
     }
 
     const result = await loginUseCase.execute({ email, password });
 
     return c.json(result, 200);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Login failed';
+    const message = error instanceof Error ? error.message : 'Login fallido';
 
-    if (message.includes('Invalid credentials') || message.includes('not active')) {
+    if (message.includes('Credenciales inválidas') || message.includes('no activo') || message.includes('Token inválido')) {
       return c.json({ error: message }, 401);
     }
 
     console.error('Login error:', error);
-    return c.json({ error: 'Internal server error' }, 500);
+    return c.json({ error: 'Error interno del servidor' }, 500);
   }
 });
 
@@ -41,7 +41,7 @@ authController.get('/me', jwtMiddleware, async (c: Context) => {
     const user = await userRepository.findById(auth.userId);
 
     if (!user) {
-      return c.json({ error: 'User not found' }, 404);
+      return c.json({ error: 'Usuario no encontrado' }, 404);
     }
 
     return c.json({
@@ -54,7 +54,7 @@ authController.get('/me', jwtMiddleware, async (c: Context) => {
     }, 200);
   } catch (error) {
     console.error('Get user error:', error);
-    return c.json({ error: 'Internal server error' }, 500);
+    return c.json({ error: 'Error interno del servidor' }, 500);
   }
 });
 

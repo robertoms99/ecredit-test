@@ -25,13 +25,15 @@ export function StatusHistoryTimeline({ history, isLoading }: StatusHistoryTimel
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-ES', {
+    return date.toLocaleTimeString('es-ES', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(date);
+      second: "2-digit"
+    })
+
   };
 
   const getTriggeredByLabel = (triggeredBy: string) => {
@@ -57,7 +59,7 @@ export function StatusHistoryTimeline({ history, isLoading }: StatusHistoryTimel
         {/* Timeline items */}
         <div className="space-y-6">
           {history.map((transition, index) => {
-            const fromStatusName = transition.fromStatus 
+            const fromStatusName = transition.fromStatus
               ? getStatusName(transition.fromStatus.code)
               : 'Inicial';
             const toStatusName = getStatusName(transition.toStatus.code);

@@ -24,7 +24,7 @@ export class ProcessExternalBankDataUseCase {
     if (!bankInfoRecord) {
       throw new AppError(
         'NOT_FOUND',
-        'Bank info not found for external request ID',
+        'Información bancaria no encontrada para ID de solicitud externa',
         { externalRequestId: input.externalRequestId }
       );
     }
@@ -36,7 +36,7 @@ export class ProcessExternalBankDataUseCase {
     if (!creditRequest) {
       throw new AppError(
         'NOT_FOUND',
-        'Credit request not found for banking info',
+        'Solicitud de crédito no encontrada para información bancaria',
         { creditRequestId: bankInfoRecord.creditRequestId }
       );
     }

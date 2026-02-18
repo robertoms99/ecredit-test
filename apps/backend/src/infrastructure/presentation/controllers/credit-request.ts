@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { validator } from 'hono/validator'
-import { 
-  createCreditRequestUseCase, 
-  getCreditRequestUseCase, 
-  listCreditRequestsUseCase, 
+import {
+  createCreditRequestUseCase,
+  getCreditRequestUseCase,
+  listCreditRequestsUseCase,
   updateCreditRequestStatusUseCase,
-  getStatusHistoryUseCase 
+  getStatusHistoryUseCase
 } from "../../di";
 import {
   createCreditRequestSchema,
@@ -26,7 +26,7 @@ router.post("/",
     const parsed = createCreditRequestSchema.safeParse(value)
     if (!parsed.success) {
       const details = parsed.error.flatten();
-      throw validationError('Invalid request body', details);
+      throw validationError('Cuerpo de solicitud inválido', details);
     }
     return parsed.data
   }),
@@ -70,12 +70,12 @@ router.get('/:id',
       const req = await getCreditRequestUseCase.execute(id);
 
       if (!req) {
-        return c.json({ error: 'Credit request not found' }, 404);
+        return c.json({ error: 'Solicitud de crédito no encontrada' }, 404);
       }
 
       if (req.userId !== auth.userId) {
         return c.json({
-          error: 'Forbidden - You can only view credit requests you created'
+          error: 'Prohibido - Solo puedes ver solicitudes de crédito que creaste'
         }, 403);
       }
 
@@ -97,7 +97,7 @@ router.get('/',
     const parsed = listCreditRequestsQuerySchema.safeParse(value);
     if (!parsed.success) {
       const details = parsed.error.flatten();
-      throw validationError('Invalid query parameters', details);
+      throw validationError('Parámetros de consulta inválidos', details);
     }
     return parsed.data;
   }),
@@ -129,7 +129,7 @@ router.patch('/:id/status',
     const parsed = updateCreditRequestStatusParamsSchema.safeParse(value);
     if (!parsed.success) {
       const details = parsed.error.flatten();
-      throw validationError('Invalid credit request ID', details);
+      throw validationError('ID de solicitud de crédito inválido', details);
     }
     return parsed.data;
   }),
@@ -137,7 +137,7 @@ router.patch('/:id/status',
     const parsed = updateCreditRequestStatusBodySchema.safeParse(value);
     if (!parsed.success) {
       const details = parsed.error.flatten();
-      throw validationError('Invalid request body', details);
+      throw validationError('Cuerpo de solicitud inválido', details);
     }
     return parsed.data;
   }),
@@ -150,12 +150,12 @@ router.patch('/:id/status',
       const existingRequest = await getCreditRequestUseCase.execute(id);
 
       if (!existingRequest) {
-        return c.json({ error: 'Credit request not found' }, 404);
+        return c.json({ error: 'Solicitud de crédito no encontrada' }, 404);
       }
 
       if (existingRequest.userId !== auth.userId) {
         return c.json({
-          error: 'Forbidden - You can only update credit requests you created'
+          error: 'Prohibido - Solo puedes actualizar solicitudes de crédito que creaste'
         }, 403);
       }
 

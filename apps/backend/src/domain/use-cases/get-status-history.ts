@@ -35,7 +35,7 @@ export class GetStatusHistoryUseCase {
     if (!creditRequest) {
       throw new AppError(
         'NOT_FOUND',
-        `Credit request with ID ${creditRequestId} not found`,
+        `Solicitud de crédito con ID ${creditRequestId} no encontrada`,
         { creditRequestId }
       );
     }
@@ -43,7 +43,7 @@ export class GetStatusHistoryUseCase {
     if (userId && creditRequest.userId !== userId) {
       throw new AppError(
         'FORBIDDEN',
-        'You can only view history for credit requests you created',
+        'Solo puedes ver el historial de solicitudes que creaste',
         { creditRequestId, userId }
       );
     }

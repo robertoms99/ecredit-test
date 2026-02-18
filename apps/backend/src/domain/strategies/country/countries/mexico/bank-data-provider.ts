@@ -28,7 +28,7 @@ export class MexicoBankDataProvider implements IBankDataProvider {
       const data = response.body;
 
       if (!data.correlation_id) {
-        throw new AppError('PROVIDER_INVALID_RESPONSE', 'Provider did not return correlation_id', {
+        throw new AppError('PROVIDER_INVALID_RESPONSE', 'El proveedor no retornó correlation_id', {
           country: 'MX',
           documentId,
           creditRequestId,
@@ -47,7 +47,7 @@ export class MexicoBankDataProvider implements IBankDataProvider {
       }
 
       if (error.timeout) {
-        throw new AppError('EXTERNAL_SERVICE_TIMEOUT', 'Mexico provider timeout', {
+        throw new AppError('EXTERNAL_SERVICE_TIMEOUT', 'Timeout del proveedor de México', {
           country: 'MX',
           documentId,
           creditRequestId,
@@ -56,7 +56,7 @@ export class MexicoBankDataProvider implements IBankDataProvider {
       }
 
       if (error.status) {
-        throw new AppError('PROVIDER_REQUEST_FAILED', `Mexico provider returned status ${error.status}`, {
+        throw new AppError('PROVIDER_REQUEST_FAILED', `El proveedor de México retornó estado ${error.status}`, {
           country: 'MX',
           documentId,
           creditRequestId,
@@ -65,7 +65,7 @@ export class MexicoBankDataProvider implements IBankDataProvider {
         });
       }
 
-      throw new AppError('EXTERNAL_SERVICE_UNAVAILABLE', 'Mexico provider unavailable', {
+      throw new AppError('EXTERNAL_SERVICE_UNAVAILABLE', 'Proveedor de México no disponible', {
         country: 'MX',
         documentId,
         creditRequestId,

@@ -15,7 +15,7 @@ export const listCreditRequestsQuerySchema = z.object({
     return true;
   },
   {
-    message: "From date must be before or equal to To date",
+    message: "La fecha 'desde' debe ser anterior o igual a la fecha 'hasta'",
     path: ["from"],
   }
 );

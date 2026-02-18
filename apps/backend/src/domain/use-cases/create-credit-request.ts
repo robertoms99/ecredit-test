@@ -58,7 +58,7 @@ export class CreateCreditRequestUseCase {
     if (!this.countryStrategyRegistry.isSupported(input.country)) {
       throw new AppError(
         'COUNTRY_NOT_SUPPORTED',
-        `Country '${input.country}' is not supported. Available countries: ${this.countryStrategyRegistry.getSupportedCountries().join(', ')}`,
+        `País '${input.country}' no soportado. Países disponibles: ${this.countryStrategyRegistry.getSupportedCountries().join(', ')}`,
         { country: input.country, availableCountries: this.countryStrategyRegistry.getSupportedCountries() }
       );
     }
@@ -72,7 +72,7 @@ export class CreateCreditRequestUseCase {
     if (!documentValidation.isValid) {
       throw new AppError(
         'DOCUMENT_VALIDATION_FAILED',
-        `Invalid ${documentValidator.getDocumentType()}: ${documentValidation.errors?.join(', ')}`,
+        `${documentValidator.getDocumentType()} inválido: ${documentValidation.errors?.join(', ')}`,
         { documentId: input.documentId, errors: documentValidation.errors }
       );
     }
@@ -83,7 +83,7 @@ export class CreateCreditRequestUseCase {
     if (input.requestedAmount < 1 || input.requestedAmount > config.amountLimit) {
       throw new AppError(
         'VALIDATION_FAILED',
-        `Requested amount must be between 1 and ${config.amountLimit} ${config.currency}`,
+        `El monto solicitado debe estar entre 1 y ${config.amountLimit} ${config.currency}`,
         {
           requestedAmount: input.requestedAmount,
           amountLimit: config.amountLimit,
@@ -97,7 +97,7 @@ export class CreateCreditRequestUseCase {
     if (!name || name.length < 2 || name.length > 100) {
       throw new AppError(
         'VALIDATION_FAILED',
-        'Full name must be between 2 and 100 characters',
+        'El nombre completo debe tener entre 2 y 100 caracteres',
         { fullName: name }
       );
     }
@@ -107,7 +107,7 @@ export class CreateCreditRequestUseCase {
     if (!income || income < 0) {
       throw new AppError(
         'VALIDATION_FAILED',
-        'Monthly income must be a positive number',
+        'El ingreso mensual debe ser un número positivo',
         { monthlyIncome: income }
       );
     }

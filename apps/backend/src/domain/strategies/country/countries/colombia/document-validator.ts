@@ -11,22 +11,22 @@ export class ColombiaDocumentValidator implements IDocumentValidator {
     const errors: string[] = [];
 
     if (!documentId || documentId.trim() === '') {
-      errors.push('CC (Cédula de Ciudadanía) is required');
+      errors.push('CC (Cédula de Ciudadanía) es requerida');
       return { isValid: false, errors };
     }
 
     const cc = documentId.trim();
 
     if (cc.length < 6 || cc.length > 10) {
-      errors.push('CC must be between 6 and 10 digits');
+      errors.push('CC debe tener entre 6 y 10 dígitos');
     }
 
     if (COLOMBIA_CONFIG.documentIdPattern && !COLOMBIA_CONFIG.documentIdPattern.test(cc)) {
-      errors.push('CC must contain only numeric digits');
+      errors.push('CC debe contener solo dígitos numéricos');
     }
 
     if (/^0+$/.test(cc)) {
-      errors.push('CC cannot be all zeros');
+      errors.push('CC no puede ser todo ceros');
     }
 
     return {

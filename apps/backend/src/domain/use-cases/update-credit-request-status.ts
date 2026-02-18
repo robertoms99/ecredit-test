@@ -35,7 +35,7 @@ export class UpdateCreditRequestStatusUseCase {
     if (!creditRequest) {
       throw new AppError(
         'NOT_FOUND',
-        `Credit request with ID ${creditRequestId} not found`,
+        `Solicitud de crédito con ID ${creditRequestId} no encontrada`,
         { creditRequestId }
       );
     }
@@ -45,7 +45,7 @@ export class UpdateCreditRequestStatusUseCase {
     if (!status) {
       throw new AppError(
         'NOT_FOUND',
-        `Status with code ${statusCode} not found`,
+        `Estado con código ${statusCode} no encontrado`,
         { statusCode }
       );
     }
@@ -59,7 +59,7 @@ export class UpdateCreditRequestStatusUseCase {
     if (currentStatus?.isFinal) {
       throw new AppError(
         'INVALID_STATUS_TRANSITION',
-        `Cannot change status from final state ${currentStatus.code}`,
+        `No se puede cambiar el estado desde el estado final ${currentStatus.code}`,
         {
           currentStatus: currentStatus.code,
           requestedStatus: statusCode,

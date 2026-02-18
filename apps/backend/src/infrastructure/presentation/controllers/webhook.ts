@@ -11,7 +11,7 @@ router.post("/process-bank-data",
     const parsed = processBankDataSchema.safeParse(value)
     if (!parsed.success) {
       const details = parsed.error.flatten();
-      throw validationError('Missing or invalid correlation_id', details);
+      throw validationError('Falta correlation_id o es inválido', details);
     }
     return parsed.data
   })
@@ -24,7 +24,7 @@ router.post("/process-bank-data",
       payload: body,
     });
 
-    return c.json({ success: true, message: 'Bank data received and processing' }, 200);
+    return c.json({ success: true, message: 'Datos bancarios recibidos y procesándose' }, 200);
   } catch (error) {
     console.error('[Webhook] Error processing bank data:', error);
     if (error instanceof AppError) {

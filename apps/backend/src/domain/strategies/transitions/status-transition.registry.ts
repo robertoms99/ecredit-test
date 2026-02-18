@@ -15,7 +15,7 @@ export class StatusTransitionRegistry {
     if (!strategy) {
       throw new AppError(
         'VALIDATION_FAILED',
-        `No transition strategy found for status '${statusCode}'`,
+        `No se encontró estrategia de transición para estado '${statusCode}'`,
         { statusCode }
       );
     }

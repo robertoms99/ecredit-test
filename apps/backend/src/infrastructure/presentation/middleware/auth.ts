@@ -22,7 +22,7 @@ export async function jwtMiddleware(c: Context, next: Next) {
   const authHeader = c.req.header('Authorization');
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized - No token provided' }, 401);
+    return c.json({ error: 'No autorizado - No se proporcionó token' }, 401);
   }
 
   const token = authHeader.substring(7); // Remove 'Bearer ' prefix
@@ -39,7 +39,7 @@ export async function jwtMiddleware(c: Context, next: Next) {
 
     await next();
   } catch (error) {
-    return c.json({ error: 'Unauthorized - Invalid token' }, 401);
+    return c.json({ error: 'No autorizado - Token inválido' }, 401);
   }
 }
 
@@ -49,7 +49,7 @@ export async function jwtMiddleware(c: Context, next: Next) {
 export function getAuth(c: Context): AuthPayload {
   const auth = c.get('auth');
   if (!auth) {
-    throw new AppError('INTERNAL_ERROR','Auth context not available - middleware not applied?');
+    throw new AppError('INTERNAL_ERROR','Contexto de autenticación no disponible - ¿middleware no aplicado?');
   }
   return auth;
 }

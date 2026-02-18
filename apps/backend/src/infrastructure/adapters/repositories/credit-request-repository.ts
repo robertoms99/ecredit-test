@@ -13,7 +13,6 @@ export class CreditRequestRepository implements ICreditRequestRepository{
       const result = await this.db.insert(schema.creditRequests).values(creditRequest).returning();
       const created = result[0];
 
-      // Fetch the complete record with status information via JOIN
       const completeRecord = await this.db
         .select({
           creditRequest: schema.creditRequests,
@@ -27,7 +26,7 @@ export class CreditRequestRepository implements ICreditRequestRepository{
         .limit(1);
 
       if (!completeRecord[0]) {
-        throw new Error('Failed to fetch created credit request');
+        throw new AppError('DATABASE_ERROR', 'No se pudo obtener la solicitud de crédito creada', { id: created.id });
       }
 
       const record = completeRecord[0];
@@ -51,7 +50,7 @@ export class CreditRequestRepository implements ICreditRequestRepository{
         } : null,
       } as any;
     } catch (error: any) {
-      throw new AppError('DATABASE_ERROR', 'Failed to create credit request', {
+      throw new AppError('DATABASE_ERROR', 'Error al crear la solicitud de crédito', {
         error: error.message,
         code: error.code,
       });

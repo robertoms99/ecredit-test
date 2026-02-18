@@ -2,13 +2,13 @@ import z from "zod";
 
 export const updateCreditRequestStatusParamsSchema = z.object({
   id: z.string().uuid({
-    message: "Credit request ID must be a valid UUID"
+    message: "El ID de solicitud de crédito debe ser un UUID válido"
   }),
 });
 
 export const updateCreditRequestStatusBodySchema = z.object({
-  status: z.string().min(1, "Status code is required").trim(),
-  reason: z.string().max(1000, "Reason must be less than 1000 characters").trim().optional(),
+  status: z.string().min(1, "El código de estado es requerido").trim(),
+  reason: z.string().max(1000, "La razón no debe exceder 1000 caracteres").trim().optional(),
 });
 
 export type UpdateCreditRequestStatusParams = z.infer<typeof updateCreditRequestStatusParamsSchema>;

@@ -11,24 +11,24 @@ export class MexicoDocumentValidator implements IDocumentValidator {
     const errors: string[] = [];
 
     if (!documentId || documentId.trim() === '') {
-      errors.push('CURP is required');
+      errors.push('CURP es requerido');
       return { isValid: false, errors };
     }
 
     const curp = documentId.trim().toUpperCase();
 
     if (curp.length !== 18) {
-      errors.push('CURP must be exactly 18 characters');
+      errors.push('CURP debe tener exactamente 18 caracteres');
     }
 
     if (MEXICO_CONFIG.documentIdPattern && !MEXICO_CONFIG.documentIdPattern.test(curp)) {
-      errors.push('CURP format is invalid. Expected format: AAAA######HHHHH##');
+      errors.push('Formato de CURP inválido. Formato esperado: AAAA######HHHHH##');
     }
 
     if (curp.length > 10) {
       const gender = curp[10];
       if (gender !== 'H' && gender !== 'M') {
-        errors.push('Invalid gender in CURP (must be H or M)');
+        errors.push('Género inválido en CURP (debe ser H o M)');
       }
     }
 

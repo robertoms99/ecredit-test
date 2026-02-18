@@ -2,25 +2,25 @@ import z from "zod";
 
 export const createCreditRequestSchema = z.object({
   country: z.string()
-    .length(2, "Country code must be 2 characters (e.g., MX, CO)")
+    .length(2, "El código de país debe tener 2 caracteres (ej: MX, CO)")
     .toUpperCase()
     .trim(),
   fullName: z.string()
-    .min(1, "Full name is required")
-    .max(255, "Full name must not exceed 255 characters")
+    .min(1, "El nombre completo es requerido")
+    .max(255, "El nombre completo no debe exceder 255 caracteres")
     .trim(),
   documentId: z.string()
-    .min(1, "Document ID is required")
-    .max(64, "Document ID must not exceed 64 characters")
+    .min(1, "El documento de identidad es requerido")
+    .max(64, "El documento de identidad no debe exceder 64 caracteres")
     .trim(),
   requestedAmount: z.number()
-    .positive("Requested amount must be positive")
-    .finite("Requested amount must be a finite number"),
+    .positive("El monto solicitado debe ser positivo")
+    .finite("El monto solicitado debe ser un número válido"),
   monthlyIncome: z.number()
-    .positive("Monthly income must be positive")
-    .finite("Monthly income must be a finite number"),
+    .positive("El ingreso mensual debe ser positivo")
+    .finite("El ingreso mensual debe ser un número válido"),
   userId: z.string()
-    .uuid("User ID must be a valid UUID")
+    .uuid("El ID de usuario debe ser un UUID válido")
     .optional(),
 });
 

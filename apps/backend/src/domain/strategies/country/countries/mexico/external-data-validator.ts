@@ -9,7 +9,7 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
     if (!externalRequestId || typeof externalRequestId !== 'string') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'External request ID is required and must be a string',
+        'ID de solicitud externa es requerido y debe ser una cadena de texto',
         { externalRequestId }
       );
     }
@@ -17,7 +17,7 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
     if (!payload || typeof payload !== 'object') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'Payload is required and must be an object',
+        'Payload es requerido y debe ser un objeto',
         { payload }
       );
     }
@@ -25,7 +25,7 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
     if (!payload.informacion_crediticia || typeof payload.informacion_crediticia !== 'object') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'Missing informacion_crediticia in Mexico provider payload',
+        'Falta informacion_crediticia en el payload del proveedor de México',
         { payload }
       );
     }
@@ -33,7 +33,7 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
     if (!payload.informacion_financiera || typeof payload.informacion_financiera !== 'object') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'Missing informacion_financiera in Mexico provider payload',
+        'Falta informacion_financiera en el payload del proveedor de México',
         { payload }
       );
     }
@@ -44,7 +44,7 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
     if (typeof creditInfo.calificacion_buro !== 'number') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'calificacion_buro must be a number',
+        'calificacion_buro debe ser un número',
         { calificacion_buro: creditInfo.calificacion_buro }
       );
     }
@@ -52,7 +52,7 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
     if (typeof finInfo.ingreso_mensual_mxn !== 'number' || finInfo.ingreso_mensual_mxn < 0) {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'ingreso_mensual_mxn must be a non-negative number',
+        'ingreso_mensual_mxn debe ser un número no negativo',
         { ingreso_mensual_mxn: finInfo.ingreso_mensual_mxn }
       );
     }
@@ -60,7 +60,7 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
     if (typeof finInfo.deuda_mensual_mxn !== 'number' || finInfo.deuda_mensual_mxn < 0) {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'deuda_mensual_mxn must be a non-negative number',
+        'deuda_mensual_mxn debe ser un número no negativo',
         { deuda_mensual_mxn: finInfo.deuda_mensual_mxn }
       );
     }
@@ -68,7 +68,7 @@ export class MexicoExternalDataValidator implements IExternalDataValidator {
     if (typeof finInfo.saldo_cuenta_mxn !== 'number') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'saldo_cuenta_mxn must be a number',
+        'saldo_cuenta_mxn debe ser un número',
         { saldo_cuenta_mxn: finInfo.saldo_cuenta_mxn }
       );
     }

@@ -44,28 +44,28 @@ export class ColombiaCreditEvaluator implements ICreditEvaluator {
 
     let reason = '';
     if (approved) {
-      reason = `Credit approved. Risk level: ${riskLevel}, Credit score: ${creditScore}, DTI ratio: ${(debtToIncomeRatio * 100).toFixed(1)}%`;
+      reason = `Crédito aprobado. Nivel de riesgo: ${riskLevel}, Puntaje crediticio: ${creditScore}, Ratio deuda/ingreso: ${(debtToIncomeRatio * 100).toFixed(1)}%`;
     } else {
       const reasons: string[] = [];
       if (!checks.creditScoreOk) {
-        reasons.push(`credit score too low (${creditScore} < ${COLOMBIA_CONFIG.minCreditScore})`);
+        reasons.push(`puntaje crediticio muy bajo (${creditScore} < ${COLOMBIA_CONFIG.minCreditScore})`);
       }
       if (!checks.debtToIncomeOk) {
-        reasons.push(`debt-to-income ratio too high (${(debtToIncomeRatio * 100).toFixed(1)}% > ${(COLOMBIA_CONFIG.maxDebtToIncomeRatio! * 100).toFixed(0)}%)`);
+        reasons.push(`ratio deuda/ingreso muy alto (${(debtToIncomeRatio * 100).toFixed(1)}% > ${(COLOMBIA_CONFIG.maxDebtToIncomeRatio! * 100).toFixed(0)}%)`);
       }
       if (!checks.amountWithinLimit) {
-        reasons.push(`requested amount exceeds limit (${requestedAmount} > ${COLOMBIA_CONFIG.amountLimit})`);
+        reasons.push(`monto solicitado excede el límite (${requestedAmount} > ${COLOMBIA_CONFIG.amountLimit})`);
       }
       if (!checks.sufficientIncome) {
-        reasons.push('insufficient monthly income for requested amount');
+        reasons.push('ingreso mensual insuficiente para el monto solicitado');
       }
       if (!checks.balanceNotCritical) {
-        reasons.push('account balance critically low');
+        reasons.push('balance de cuenta críticamente bajo');
       }
       if (riskLevel === 'HIGH') {
-        reasons.push('high risk profile');
+        reasons.push('perfil de alto riesgo');
       }
-      reason = `Credit rejected: ${reasons.join(', ')}`;
+      reason = `Crédito rechazado: ${reasons.join(', ')}`;
     }
 
     let recommendedAmount: number | undefined;

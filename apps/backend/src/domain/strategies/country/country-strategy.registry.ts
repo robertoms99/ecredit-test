@@ -14,7 +14,7 @@ export class CountryStrategyRegistry {
     if (!strategy) {
       throw new AppError(
         'VALIDATION_FAILED',
-        `Country '${countryCode}' is not supported. Available countries: ${this.getSupportedCountries().join(', ')}`,
+        `País '${countryCode}' no soportado. Países disponibles: ${this.getSupportedCountries().join(', ')}`,
         { countryCode, availableCountries: this.getSupportedCountries() }
       );
     }

@@ -9,7 +9,7 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
     if (!externalRequestId || typeof externalRequestId !== 'string') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'External request ID is required and must be a string',
+        'ID de solicitud externa es requerido y debe ser una cadena de texto',
         { externalRequestId }
       );
     }
@@ -17,7 +17,7 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
     if (!payload || typeof payload !== 'object') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'Payload is required and must be an object',
+        'Payload es requerido y debe ser un objeto',
         { payload }
       );
     }
@@ -25,7 +25,7 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
     if (!payload.datacredito || typeof payload.datacredito !== 'object') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'Missing datacredito in Colombia provider payload',
+        'Falta datacredito en el payload del proveedor de Colombia',
         { payload }
       );
     }
@@ -33,7 +33,7 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
     if (!payload.datos_financieros || typeof payload.datos_financieros !== 'object') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'Missing datos_financieros in Colombia provider payload',
+        'Falta datos_financieros en el payload del proveedor de Colombia',
         { payload }
       );
     }
@@ -44,7 +44,7 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
     if (typeof datacredito.score !== 'number') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'datacredito.score must be a number',
+        'datacredito.score debe ser un número',
         { score: datacredito.score }
       );
     }
@@ -52,7 +52,7 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
     if (typeof datosFinancieros.ingresos_mensuales !== 'number' || datosFinancieros.ingresos_mensuales < 0) {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'ingresos_mensuales must be a non-negative number',
+        'ingresos_mensuales debe ser un número no negativo',
         { ingresos_mensuales: datosFinancieros.ingresos_mensuales }
       );
     }
@@ -60,7 +60,7 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
     if (typeof datosFinancieros.obligaciones_mensuales !== 'number' || datosFinancieros.obligaciones_mensuales < 0) {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'obligaciones_mensuales must be a non-negative number',
+        'obligaciones_mensuales debe ser un número no negativo',
         { obligaciones_mensuales: datosFinancieros.obligaciones_mensuales }
       );
     }
@@ -68,7 +68,7 @@ export class ColombiaExternalDataValidator implements IExternalDataValidator {
     if (typeof datosFinancieros.balance_cuentas !== 'number') {
       throw new AppError(
         'WEBHOOK_VALIDATION_FAILED',
-        'balance_cuentas must be a number',
+        'balance_cuentas debe ser un número',
         { balance_cuentas: datosFinancieros.balance_cuentas }
       );
     }

@@ -2,7 +2,7 @@ import z from "zod";
 
 export const getCreditRequestParamsSchema = z.object({
   id: z.string().uuid({
-    message: "Credit request ID must be a valid UUID"
+    message: "El ID de solicitud de crédito debe ser un UUID válido"
   }),
 });
 

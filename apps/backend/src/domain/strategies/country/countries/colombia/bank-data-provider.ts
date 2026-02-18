@@ -29,7 +29,7 @@ export class ColombiaBankDataProvider implements IBankDataProvider {
       const data = response.body;
 
       if (!data.correlation_id) {
-        throw new AppError('PROVIDER_INVALID_RESPONSE', 'Provider did not return correlation_id', {
+        throw new AppError('PROVIDER_INVALID_RESPONSE', 'El proveedor no retornó correlation_id', {
           country: 'CO',
           documentId,
           creditRequestId,
@@ -48,7 +48,7 @@ export class ColombiaBankDataProvider implements IBankDataProvider {
       }
 
       if (error.timeout) {
-        throw new AppError('EXTERNAL_SERVICE_TIMEOUT', 'Colombia provider timeout', {
+        throw new AppError('EXTERNAL_SERVICE_TIMEOUT', 'Timeout del proveedor de Colombia', {
           country: 'CO',
           documentId,
           creditRequestId,
@@ -57,7 +57,7 @@ export class ColombiaBankDataProvider implements IBankDataProvider {
       }
 
       if (error.status) {
-        throw new AppError('PROVIDER_REQUEST_FAILED', `Colombia provider returned status ${error.status}`, {
+        throw new AppError('PROVIDER_REQUEST_FAILED', `El proveedor de Colombia retornó estado ${error.status}`, {
           country: 'CO',
           documentId,
           creditRequestId,
@@ -66,7 +66,7 @@ export class ColombiaBankDataProvider implements IBankDataProvider {
         });
       }
 
-      throw new AppError('EXTERNAL_SERVICE_UNAVAILABLE', 'Colombia provider unavailable', {
+      throw new AppError('EXTERNAL_SERVICE_UNAVAILABLE', 'Proveedor de Colombia no disponible', {
         country: 'CO',
         documentId,
         creditRequestId,

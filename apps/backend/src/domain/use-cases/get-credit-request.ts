@@ -13,7 +13,7 @@ export class GetCreditRequestUseCase {
     if (!creditRequest) {
       throw new AppError(
         'NOT_FOUND',
-        `Credit request with ID ${id} not found`,
+        `Solicitud de crédito con ID ${id} no encontrada`,
         { id }
       );
     }

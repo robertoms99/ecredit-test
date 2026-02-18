@@ -41,28 +41,28 @@ export class MexicoCreditEvaluator implements ICreditEvaluator {
 
     let reason = '';
     if (approved) {
-      reason = `Credit approved. Risk level: ${riskLevel}, Credit score: ${creditScore}, DTI ratio: ${(debtToIncomeRatio * 100).toFixed(1)}%`;
+      reason = `Crédito aprobado. Nivel de riesgo: ${riskLevel}, Puntaje crediticio: ${creditScore}, Relación deuda/ingreso: ${(debtToIncomeRatio * 100).toFixed(1)}%`;
     } else {
       const reasons: string[] = [];
       if (!checks.creditScoreOk) {
-        reasons.push(`credit score too low (${creditScore} < ${MEXICO_CONFIG.minCreditScore})`);
+        reasons.push(`puntaje crediticio muy bajo (${creditScore} < ${MEXICO_CONFIG.minCreditScore})`);
       }
       if (!checks.debtToIncomeOk) {
-        reasons.push(`debt-to-income ratio too high (${(debtToIncomeRatio * 100).toFixed(1)}% > ${(MEXICO_CONFIG.maxDebtToIncomeRatio! * 100).toFixed(0)}%)`);
+        reasons.push(`relación deuda/ingreso muy alta (${(debtToIncomeRatio * 100).toFixed(1)}% > ${(MEXICO_CONFIG.maxDebtToIncomeRatio! * 100).toFixed(0)}%)`);
       }
       if (!checks.amountWithinLimit) {
-        reasons.push(`requested amount exceeds limit (${requestedAmount} > ${MEXICO_CONFIG.amountLimit})`);
+        reasons.push(`monto solicitado excede el límite (${requestedAmount} > ${MEXICO_CONFIG.amountLimit})`);
       }
       if (!checks.sufficientIncome) {
-        reasons.push('insufficient monthly income for requested amount');
+        reasons.push('ingreso mensual insuficiente para el monto solicitado');
       }
       if (!checks.positiveBalance) {
-        reasons.push('negative account balance');
+        reasons.push('saldo de cuenta negativo');
       }
       if (riskLevel === 'HIGH') {
-        reasons.push('high risk profile');
+        reasons.push('perfil de alto riesgo');
       }
-      reason = `Credit rejected: ${reasons.join(', ')}`;
+      reason = `Crédito rechazado: ${reasons.join(', ')}`;
     }
 
     let recommendedAmount: number | undefined;

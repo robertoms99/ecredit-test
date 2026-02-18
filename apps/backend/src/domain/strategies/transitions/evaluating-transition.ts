@@ -30,7 +30,7 @@ export class EvaluatingStatusTransition implements IStatusTransitionStrategy {
     if (!bankingInfo) {
       throw new AppError(
         'NOT_FOUND',
-        `Banking info not found for credit request ${creditRequest.id}`,
+        `Información bancaria no encontrada para solicitud de crédito ${creditRequest.id}`,
         { creditRequestId: creditRequest.id }
       );
     }
@@ -38,7 +38,7 @@ export class EvaluatingStatusTransition implements IStatusTransitionStrategy {
     if (!bankingInfo.financialData) {
       throw new AppError(
         'VALIDATION_FAILED',
-        `Financial data not yet received for credit request ${creditRequest.id}`,
+        `Datos financieros aún no recibidos para solicitud de crédito ${creditRequest.id}`,
         { creditRequestId: creditRequest.id }
       );
     }
