@@ -14,7 +14,7 @@ API REST construida con Bun, Hono y arquitectura hexagonal.
 
 ## Desarrollo
 
-> **Requisito:** PostgreSQL y Redis deben estar corriendo. Desde la raíz del monorepo: `docker compose up -d db redis`
+> **Requisito:** PostgreSQL y Redis deben estar corriendo. Desde la raíz del monorepo: `docker compose --env-file .env.docker up -d db redis`
 
 ```bash
 # Desde la raíz del monorepo
@@ -80,6 +80,7 @@ Swagger UI disponible en http://localhost:3000/docs
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | POST | `/api/auth/login` | Iniciar sesión |
+| GET | `/api/auth/me` | Obtener usuario actual |
 
 ### Solicitudes de Crédito
 
@@ -88,14 +89,20 @@ Swagger UI disponible en http://localhost:3000/docs
 | GET | `/api/credit-requests` | Listar solicitudes |
 | POST | `/api/credit-requests` | Crear solicitud |
 | GET | `/api/credit-requests/:id` | Obtener detalle |
-| PUT | `/api/credit-requests/:id/status` | Actualizar estado |
-| GET | `/api/credit-requests/:id/status-history` | Historial de estados |
+| PATCH | `/api/credit-requests/:id/status` | Actualizar estado |
+| GET | `/api/credit-requests/:id/history` | Historial de estados |
+
+### Estados
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/request-statuses` | Listar estados disponibles |
 
 ### Webhooks
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| POST | `/api/webhook/:country/bank-data` | Recibir datos bancarios |
+| POST | `/api/webhook/process-bank-data` | Recibir datos bancarios |
 
 ### Health
 
