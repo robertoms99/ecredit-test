@@ -27,12 +27,13 @@ apps/
 ### Requisitos
 
 - [Bun](https://bun.sh/docs/installation) >= 1.1.0 (o usar [mise](https://mise.jdx.dev/getting-started.html) para gestionar versiones automáticamente)
+
 - Docker y Docker Compose
 
 ### 1. Levantar servicios de infraestructura
 
 ```bash
-docker compose up -d db redis
+docker compose --env-file .env.docker up -d db redis
 ```
 
 ### 2. Instalar dependencias
@@ -90,7 +91,7 @@ Para ejecutar todo el sistema containerizado:
 cp .env.docker.example .env.docker
 
 # Levantar todos los servicios
-docker compose up -d --build
+docker compose --env-file .env.docker up -d --build
 ```
 
 Esto levanta: PostgreSQL, Redis, Backend, Frontend y Provider Simulator.
@@ -104,14 +105,14 @@ Esto levanta: PostgreSQL, Redis, Backend, Frontend y Provider Simulator.
 ### Verificar estado
 
 ```bash
-docker compose ps
-docker compose logs -f backend
+docker compose --env-file .env.docker ps
+docker compose --env-file .env.docker logs -f backend
 ```
 
 ### Detener servicios
 
 ```bash
-docker compose down
+docker compose --env-file .env.docker down
 ```
 
 ## Scripts Principales
