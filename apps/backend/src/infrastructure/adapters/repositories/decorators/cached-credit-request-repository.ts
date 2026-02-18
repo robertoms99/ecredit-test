@@ -50,18 +50,7 @@ export class CachedCreditRequestRepository implements ICreditRequestRepository {
   }
 
   private async invalidateForCreditRequest(request: CreditRequest) {
-    const candidates: Array<Record<string, any>> = [
-      { country: request.country },
-      { status: request.statusId },
-      { userId: request.userId },
-      {},
-    ];
-
-    for (const f of candidates) {
-      const listKey = makeKey('credit_requests:list', f);
-      const countKey = makeKey('credit_requests:count', f);
-      await this.cache.del(listKey);
-      await this.cache.del(countKey);
-    }
+    await this.cache.delPattern('credit_requests:list:*');
+    await this.cache.delPattern('credit_requests:count:*');
   }
 }

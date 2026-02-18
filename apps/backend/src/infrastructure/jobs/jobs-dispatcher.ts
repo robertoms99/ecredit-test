@@ -15,9 +15,17 @@ export class PgBossJobDispatcher implements IJobDispatcher {
     try {
       await this.boss.start();
       for (const [jobName, job] of this.jobs) {
-        await this.boss.createQueue(jobName as string);
+       await this.boss.createQueue(jobName as string);
         await this.boss.work(jobName, async (pgJobs: Job[]) => {
-          pgJobs.forEach(async (pgJob)=> await job.work(pgJob.data))
+          for (const pgJob of pgJobs) {
+            try {
+              await job.work(pgJob.data);
+            } catch (error) {
+              console.error(`[Job Error] ${String(jobName)} - Job ID: ${pgJob.id}`);
+              console.error(error);
+              throw error;
+            }
+          }
         });
       }
     } catch (error: any) {
