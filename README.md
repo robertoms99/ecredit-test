@@ -88,6 +88,25 @@ bun run dev:provider
 - Email: `admin1@ecredit.com`
 - Password: `admin123456`
 
+### Usuarios de prueba para solicitudes
+
+Los siguientes documentos de identidad pueden usarse para crear solicitudes de credito, tanto en desarrollo local como en produccion ([https://ecredit.robertomolina.dev/](https://ecredit.robertomolina.dev/)). Estos usuarios estan predefinidos en el simulador de proveedores bancarios.
+
+#### Mexico (MX)
+
+| CURP | Nombre | Score Buro | Resultado Esperado |
+|------|--------|------------|-------------------|
+| `GOMC860101HDFRRA09` | Good Mexico User | 750 | APROBADO |
+| `BAPC901215MDFRRS03` | Bad Mexico User | 450 | RECHAZADO |
+
+#### Colombia (CO)
+
+| Cedula | Nombre | Score Datacredito | Resultado Esperado |
+|--------|--------|-------------------|-------------------|
+| `1234567890` | Good Colombia User | 680 | APROBADO |
+| `9876543210` | Bad Colombia User | 400 | RECHAZADO |
+
+
 ## Despliegue Local con Docker
 
 Para ejecutar todo el sistema containerizado:
