@@ -130,6 +130,7 @@ strategies/transitions/
 
 1. **CREATED**: Solicita datos bancarios al proveedor y transiciona a `PENDING_FOR_BANK_DATA`
 2. **PENDING_FOR_BANK_DATA**: Espera la respuesta del webhook del proveedor
+3. **FAILED_FROM_PROVIDER** Este estado puede ser producido cuando el proveedor lanza un error concreto
 3. **EVALUATING**: Evalúa la solicitud con los datos recibidos y transiciona a `APPROVED` o `REJECTED`
 
 Cada transición puede:
