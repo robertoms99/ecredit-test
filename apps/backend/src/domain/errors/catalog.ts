@@ -15,6 +15,7 @@ export type ErrorCode =
   | 'EXTERNAL_SERVICE_UNAVAILABLE'
   | 'PROVIDER_REQUEST_FAILED'
   | 'PROVIDER_INVALID_RESPONSE'
+  | 'PROVIDER_KNOWN_ERROR'
   | 'WEBHOOK_VALIDATION_FAILED'
   | 'DOCUMENT_VALIDATION_FAILED'
   | 'CREDIT_EVALUATION_FAILED'
@@ -49,6 +50,7 @@ const CATALOG: Record<ErrorCode, ErrorCatalogEntry> = {
   EXTERNAL_SERVICE_UNAVAILABLE: { status: 503, defaultMessage: 'Servicio externo no disponible' },
   PROVIDER_REQUEST_FAILED: { status: 502, defaultMessage: 'Solicitud al proveedor fallida', requireDetails: true },
   PROVIDER_INVALID_RESPONSE: { status: 502, defaultMessage: 'El proveedor retornó una respuesta inválida', requireDetails: true },
+  PROVIDER_KNOWN_ERROR: { status: 422, defaultMessage: 'Error conocido del proveedor', requireDetails: true },
   WEBHOOK_VALIDATION_FAILED: { status: 400, defaultMessage: 'Validación de datos del webhook fallida', requireDetails: true },
   DOCUMENT_VALIDATION_FAILED: { status: 400, defaultMessage: 'Validación de documento fallida', requireDetails: true },
   CREDIT_EVALUATION_FAILED: { status: 500, defaultMessage: 'Evaluación de crédito fallida', requireDetails: true },

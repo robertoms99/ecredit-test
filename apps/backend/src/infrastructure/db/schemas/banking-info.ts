@@ -4,7 +4,7 @@ import { creditRequests } from './credit-requests';
 
 export const bankingInfo = pgTable('banking_info', {
   id: uuid('id').defaultRandom().primaryKey(),
-  externalRequestId: uuid('external_request_id').notNull(),
+  externalRequestId: uuid('external_request_id'),
   providerName: varchar('provider_name', { length: 255 }).notNull(),
   providerResponseAt: timestamp('provider_response_at', { withTimezone: true }),
   financialData: jsonb('financial_data').notNull().default({}),

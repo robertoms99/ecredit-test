@@ -1,8 +1,9 @@
 import type { IBankDataProvider } from '../../bank-data-provider.interface';
 import type { NewBankingInfo } from '../../../../entities/banking-info';
-import { MEXICO_CONFIG } from './config';
-import { AppError } from '../../../../errors/app-error';
 import type { IHttpClient } from '../../../../ports/http-client';
+import { MEXICO_CONFIG } from './config';
+import { MEXICO_PROVIDER_ERRORS, isMexicoProviderError } from './provider-errors';
+import { AppError } from '../../../../errors/app-error';
 
 export class MexicoBankDataProvider implements IBankDataProvider {
   constructor(
@@ -38,6 +39,22 @@ export class MexicoBankDataProvider implements IBankDataProvider {
     } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
+      }
+
+      if (error.response?.body?.error_code) {
+        const providerErrorCode = error.response.body.error_code;
+        if (isMexicoProviderError(providerErrorCode)) {
+          const providerError = MEXICO_PROVIDER_ERRORS[providerErrorCode];
+          throw new AppError('PROVIDER_KNOWN_ERROR', providerError.message, {
+            country: 'MX',
+            documentId,
+            creditRequestId,
+            providerErrorCode,
+            shouldCatch: providerError.shouldCatch,
+            providerName: MEXICO_CONFIG.providerName,
+            details: error.response.body.details,
+          });
+        }
       }
 
       if (error.timeout) {

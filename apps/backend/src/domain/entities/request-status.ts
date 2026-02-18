@@ -6,6 +6,7 @@ export enum RequestStatusCodes {
   EVALUATING = 'EVALUATING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
+  FAILED_FROM_PROVIDER = 'FAILED_FROM_PROVIDER',
 }
 
 export type RequestStatus = typeof requestStatuses.$inferSelect;

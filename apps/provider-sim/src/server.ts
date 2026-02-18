@@ -83,8 +83,12 @@ app.post('/providers/mx', (req: Request, res: Response) => {
 
   if (!TEST_USERS.MX[document_id as keyof typeof TEST_USERS.MX]) {
     return res.status(404).json({
-      error: `CURP ${document_id} not found in Mexico test users`,
-      available_test_users: Object.keys(TEST_USERS.MX),
+      error_code: 'USER_NOT_FOUND',
+      error: 'CURP no encontrado en el sistema',
+      details: {
+        document_id,
+        country: 'MX',
+      },
     });
   }
 
@@ -127,8 +131,12 @@ app.post('/providers/co', (req: Request, res: Response) => {
 
   if (!TEST_USERS.CO[document_id as keyof typeof TEST_USERS.CO]) {
     return res.status(404).json({
-      error: `CC ${document_id} not found in Colombia test users`,
-      available_test_users: Object.keys(TEST_USERS.CO),
+      error_code: 'USER_NOT_FOUND',
+      error: 'Cédula no encontrada en el sistema',
+      details: {
+        document_id,
+        country: 'CO',
+      },
     });
   }
 

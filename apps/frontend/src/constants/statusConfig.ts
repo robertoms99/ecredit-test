@@ -18,6 +18,7 @@ export const STATUS_CODES = {
   EVALUATING: 'EVALUATING',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
+  FAILED_FROM_PROVIDER: 'FAILED_FROM_PROVIDER',
 } as const;
 
 /**
@@ -48,6 +49,11 @@ export const STATUS_CONFIG_MAP: Record<string, StatusConfig> = {
     code: STATUS_CODES.REJECTED,
     name: 'Rechazada',
     color: 'bg-red-100 text-red-800',
+  },
+  [STATUS_CODES.FAILED_FROM_PROVIDER]: {
+    code: STATUS_CODES.FAILED_FROM_PROVIDER,
+    name: 'Error del proveedor',
+    color: 'bg-orange-100 text-orange-800',
   },
 };
 

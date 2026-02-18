@@ -10,6 +10,7 @@ async function seed() {
     { code: RequestStatusCodes.EVALUATING, name: 'En evaluación', description: 'En revisión', isFinal: false, displayOrder: 3 },
     { code: RequestStatusCodes.APPROVED, name: 'Aprobada', description: 'Aprobada', isFinal: true, displayOrder: 4 },
     { code: RequestStatusCodes.REJECTED, name: 'Rechazada', description: 'Rechazada', isFinal: true, displayOrder: 5 },
+    { code: RequestStatusCodes.FAILED_FROM_PROVIDER, name: 'Error del proveedor', description: 'Error al consultar datos bancarios', isFinal: true, displayOrder: 6 },
   ];
   for (const s of statuses) {
     await db.insert(schema.requestStatuses)
