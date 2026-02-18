@@ -2,30 +2,24 @@ import type { IBankDataProvider } from '../../bank-data-provider.interface';
 import type { NewBankingInfo } from '../../../../entities/banking-info';
 import { MEXICO_CONFIG } from './config';
 import { AppError } from '../../../../errors/app-error';
-import superagent from 'superagent';
+import type { IHttpClient } from '../../../../ports/http-client';
 
 export class MexicoBankDataProvider implements IBankDataProvider {
-  private readonly callbackUrl: string;
-
-  constructor(callbackUrl: string) {
-    this.callbackUrl = callbackUrl;
-  }
+  constructor(
+    private readonly callbackUrl: string,
+    private readonly httpClient: IHttpClient
+  ) {}
 
   async fetchBankData(
     documentId: string,
     creditRequestId: string
   ): Promise<Omit<NewBankingInfo, 'creditRequestId'>> {
     try {
-      const response = await superagent
-        .post(MEXICO_CONFIG.providerUrl)
-        .send({
-          document_id: documentId,
-          credit_request_id: creditRequestId,
-          callback_url: this.callbackUrl,
-        })
-        .timeout(10000);
-
-      const data = response.body;
+      const data = await this.httpClient.post<any>(MEXICO_CONFIG.providerUrl, {
+        document_id: documentId,
+        credit_request_id: creditRequestId,
+        callback_url: this.callbackUrl,
+      });
 
       if (!data.correlation_id) {
         throw new AppError('PROVIDER_INVALID_RESPONSE', 'El proveedor no retornó correlation_id', {

@@ -28,8 +28,12 @@ import { ListCreditRequestsUseCase } from '../domain/use-cases/list-credit-reque
 import { UpdateCreditRequestStatusUseCase } from '../domain/use-cases/update-credit-request-status';
 import { GetStatusHistoryUseCase } from '../domain/use-cases/get-status-history';
 import { ListRequestStatusesUseCase } from '../domain/use-cases/list-request-statuses';
+import { LoginUseCase } from '../domain/use-cases/login';
+import { JwtTokenSigner, BcryptPasswordHasher } from './adapters/auth/jwt-token-signer';
+import { UserRepository } from './adapters/repositories/user-repository';
+import { HttpClient } from './adapters/http/http-client';
 import { StatusTransitionJob } from '../domain/jobs/status-transition-job';
-import { JobManager } from './jobs/jobs-manager';
+import { PgBossJobDispatcher } from './jobs/jobs-dispatcher';
 import { DatabaseNotificationListener } from './db/notification-listener';
 
 export const wsServer = new WebSocketServer(httpServer);
@@ -49,7 +53,8 @@ const bankInfoRepository = new BankInfoRepository(db);
 const statusTransitionRepository = new StatusTransitionRepository(db);
 
 const webhookCallbackUrl = `http://${config.server.internalHost}:${config.server.port}/api/webhook/process-bank-data`;
-const countryStrategies = createCountryStrategies(webhookCallbackUrl);
+const httpClient = new HttpClient();
+const countryStrategies = createCountryStrategies(webhookCallbackUrl, httpClient);
 const countryStrategyRegistry = new CountryStrategyRegistry();
 
 for (const strategy of countryStrategies) {
@@ -60,7 +65,7 @@ for (const strategy of countryStrategies) {
 const statusTransitionRegistry = new StatusTransitionRegistry();
 
 const pgBoss = new PgB.PgBoss(connectionString);
-const jobManager = new JobManager(pgBoss);
+const jobDispatcher = new PgBossJobDispatcher(pgBoss);
 
 const createdTransition = new CreatedStatusTransition(
   countryStrategyRegistry,
@@ -81,17 +86,13 @@ const evaluatingTransition = new EvaluatingStatusTransition(
 statusTransitionRegistry.register(createdTransition);
 statusTransitionRegistry.register(evaluatingTransition);
 
+jobDispatcher.register(new StatusTransitionJob(creditRequestRepository, statusTransitionRegistry));
 
-jobManager.register(
-  (boss) =>
-    new StatusTransitionJob(boss, creditRequestRepository, statusTransitionRegistry)
-);
-
-await jobManager.start();
+await jobDispatcher.start();
 
 const dbNotificationListener = new DatabaseNotificationListener(
   connectionString,
-  jobManager,
+  jobDispatcher,
   wsServer
 );
 
@@ -130,6 +131,11 @@ export const getStatusHistoryUseCase = new GetStatusHistoryUseCase(
 export const listRequestStatusesUseCase = new ListRequestStatusesUseCase(
   requestStatusRepository
 );
+
+const userRepository = new UserRepository();
+const tokenSigner = new JwtTokenSigner();
+const passwordHasher = new BcryptPasswordHasher();
+export const loginUseCase = new LoginUseCase(userRepository, tokenSigner, passwordHasher);
 
 process.on('SIGTERM', async () => {
   console.log('Received SIGTERM, shutting down gracefully...');

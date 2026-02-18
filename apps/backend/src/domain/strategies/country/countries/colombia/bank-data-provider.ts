@@ -1,32 +1,26 @@
 import type { IBankDataProvider } from '../../bank-data-provider.interface';
 import type { NewBankingInfo } from '../../../../entities/banking-info';
+import type { IHttpClient } from '../../../../ports/http-client';
 import { COLOMBIA_CONFIG } from './config';
-import superagent from 'superagent';
 import { AppError } from '../../../../errors';
 
 
 export class ColombiaBankDataProvider implements IBankDataProvider {
-  private readonly callbackUrl: string;
-
-  constructor(callbackUrl: string) {
-    this.callbackUrl = callbackUrl;
-  }
+  constructor(
+    private readonly callbackUrl: string,
+    private readonly httpClient: IHttpClient
+  ) {}
 
   async fetchBankData(
     documentId: string,
     creditRequestId: string
   ): Promise<Omit<NewBankingInfo, 'creditRequestId'>> {
     try {
-      const response = await superagent
-        .post(COLOMBIA_CONFIG.providerUrl)
-        .send({
-          document_id: documentId,
-          credit_request_id: creditRequestId,
-          callback_url: this.callbackUrl,
-        })
-        .timeout(10000);
-
-      const data = response.body;
+      const data = await this.httpClient.post<any>(COLOMBIA_CONFIG.providerUrl, {
+        document_id: documentId,
+        credit_request_id: creditRequestId,
+        callback_url: this.callbackUrl,
+      })
 
       if (!data.correlation_id) {
         throw new AppError('PROVIDER_INVALID_RESPONSE', 'El proveedor no retornó correlation_id', {

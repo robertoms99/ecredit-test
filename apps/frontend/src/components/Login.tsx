@@ -7,7 +7,7 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -123,18 +123,6 @@ export const Login: React.FC = () => {
             {isLoading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
-
-        <div style={{
-          marginTop: '2rem',
-          padding: '1rem',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '4px',
-          fontSize: '0.85rem',
-        }}>
-          <p style={{ margin: '0 0 0.5rem 0', fontWeight: 500 }}>Usuarios de Prueba:</p>
-          <p style={{ margin: '0.25rem 0' }}>• admin1@ecredit.com / admin123456</p>
-          <p style={{ margin: '0.25rem 0' }}>• admin2@ecredit.com / admin123456</p>
-        </div>
       </div>
     </div>
   );

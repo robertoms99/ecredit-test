@@ -9,6 +9,7 @@ import { ColombiaDocumentValidator } from './document-validator';
 import { ColombiaCreditEvaluator } from './credit-evaluator';
 import { ColombiaBankDataProvider } from './bank-data-provider';
 import { ColombiaExternalDataValidator } from './external-data-validator';
+import { IHttpClient } from '../../../../ports/http-client';
 
 export class ColombiaStrategy implements ICountryStrategy {
   private readonly documentValidator: IDocumentValidator;
@@ -16,10 +17,10 @@ export class ColombiaStrategy implements ICountryStrategy {
   private readonly bankDataProvider: IBankDataProvider;
   private readonly externalDataValidator: IExternalDataValidator;
 
-  constructor(callbackUrl: string) {
+  constructor(callbackUrl: string, httpClient: IHttpClient) {
     this.documentValidator = new ColombiaDocumentValidator();
     this.creditEvaluator = new ColombiaCreditEvaluator();
-    this.bankDataProvider = new ColombiaBankDataProvider(callbackUrl);
+    this.bankDataProvider = new ColombiaBankDataProvider(callbackUrl,httpClient);
     this.externalDataValidator = new ColombiaExternalDataValidator();
   }
 

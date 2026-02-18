@@ -1,12 +1,11 @@
 import { Context, Hono } from 'hono';
-import { LoginUseCase } from '../../../domain/use-cases/login';
+import { loginUseCase } from '../../di';
 import { UserRepository } from '../../adapters/repositories/user-repository';
 import { jwtMiddleware, getAuth } from '../middleware/auth';
 
 const authController = new Hono();
 
 const userRepository = new UserRepository();
-const loginUseCase = new LoginUseCase(userRepository);
 
 
 authController.post('/login', async (c: Context) => {

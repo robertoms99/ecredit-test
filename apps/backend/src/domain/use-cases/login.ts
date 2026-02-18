@@ -1,5 +1,5 @@
-import { UserRepository } from '../../infrastructure/adapters/repositories/user-repository';
-import { verifyPassword, signJWT } from '../../infrastructure/auth/jwt';
+import type { IUserRepository } from '../ports/repositories/user-repository';
+import type { IAuthTokenSigner, IPasswordHasher } from '../ports/auth-token';
 import { AppError } from '../errors';
 
 export interface LoginRequest {
@@ -18,7 +18,11 @@ export interface LoginResponse {
 }
 
 export class LoginUseCase {
-  constructor(private userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly tokenSigner: IAuthTokenSigner,
+    private readonly passwordHasher: IPasswordHasher,
+  ) {}
 
   async execute(request: LoginRequest): Promise<LoginResponse> {
     const { email, password } = request;
@@ -33,13 +37,13 @@ export class LoginUseCase {
       throw new AppError('AUTH_FAILED','Token inválido o expirado');
     }
 
-    const isPasswordValid = await verifyPassword(password, user.passwordHash);
+    const isPasswordValid = await this.passwordHasher.verify(password, user.passwordHash);
 
     if (!isPasswordValid) {
       throw new AppError('AUTH_FAILED','Credenciales inválidas');
     }
 
-    const token = await signJWT({
+    const token = await this.tokenSigner.sign({
       userId: user.id,
       email: user.email,
       role: user.role,

@@ -1,6 +1,6 @@
-# Backend API - eCredit
+Esta app backend expone una REST API y esta construida con Bun (con typescript), Hono (framework HTTP) siguiendo arquitectura hexagonal. Ademas de la inclusion de algunas librerias utiles que soportan la infraestructura tales como JWT, PGBoss (cliente para colas), ioredis, socket.io, zod (validador de schemas), drizzle (ORM), entre otros.
 
-API REST construida con Bun, Hono y PostgreSQL siguiendo arquitectura hexagonal.
+La aplicacion backend es dependiente de una base de datos Postgresql tanto para datos relacionales como para manejo de colas, ademas de un cliente de Redis para el manejo de caching.
 
 ## 🚀 Quick Start
 
@@ -8,7 +8,7 @@ API REST construida con Bun, Hono y PostgreSQL siguiendo arquitectura hexagonal.
 
 ```bash
 # Desde la raíz del monorepo
-bun dev:backend
+bun run dev:backend
 
 # O desde este directorio
 bun dev
@@ -17,9 +17,6 @@ bun dev
 ### Docker
 
 ```bash
-# Build
-docker build -t ecredit-backend:latest .
-
 # Run (requiere PostgreSQL corriendo)
 docker run -d \
   --name ecredit-backend \
@@ -28,6 +25,9 @@ docker run -d \
   -e JWT_SECRET=tu-secreto-seguro \
   -e PROVIDER_SIM_URL=http://host.docker.internal:3001 \
   ecredit-backend:latest
+  
+  # Build
+  docker build -t ecredit-backend:latest .
 ```
 
 ## 🐳 Docker Build

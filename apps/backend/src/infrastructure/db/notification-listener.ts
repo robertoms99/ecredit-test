@@ -1,5 +1,5 @@
 import { Client } from 'pg';
-import type { IJobManager } from '../../domain/ports/jobs';
+import type { IJobDispatcher } from '../../domain/ports/jobs';
 import type { RequestStatusCodes } from '../../domain/entities';
 import type { WebSocketServer } from '../websocket/websocket-server';
 
@@ -21,7 +21,7 @@ export class DatabaseNotificationListener {
 
   constructor(
     private readonly connectionString: string,
-    private readonly jobManager: IJobManager,
+    private readonly jobManager: IJobDispatcher,
     private readonly wsServer?: WebSocketServer
   ) {
     this.client = new Client({ connectionString: this.connectionString });

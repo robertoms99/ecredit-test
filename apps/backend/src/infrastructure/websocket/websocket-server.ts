@@ -1,7 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HttpServer } from 'http';
-import { config } from '../../config';
 import { RequestStatusCodes } from '../../domain/entities';
+import { config } from '../../config';
 
 export class WebSocketServer {
   private io: SocketIOServer;

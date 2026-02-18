@@ -1,18 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { db, schema } from '../../db/client';
+import type { IUserRepository } from '../../../domain/ports/repositories/user-repository';
+import type { User } from '../../../domain/entities/user';
 
-export interface User {
-  id: string;
-  email: string;
-  passwordHash: string;
-  fullName: string;
-  role: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export class UserRepository {
+export class UserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const users = await db
       .select()

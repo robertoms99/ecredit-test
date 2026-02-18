@@ -4,6 +4,7 @@ import type { ICreditEvaluator } from '../../credit-evaluator.interface';
 import type { IBankDataProvider } from '../../bank-data-provider.interface';
 import type { IExternalDataValidator } from '../../external-data-validator.interface';
 import type { CountryConfig } from '../../types';
+import type { IHttpClient } from '../../../../ports/http-client';
 import { MEXICO_CONFIG } from './config';
 import { MexicoDocumentValidator } from './document-validator';
 import { MexicoCreditEvaluator } from './credit-evaluator';
@@ -16,10 +17,10 @@ export class MexicoStrategy implements ICountryStrategy {
   private readonly bankDataProvider: IBankDataProvider;
   private readonly externalDataValidator: IExternalDataValidator;
 
-  constructor(callbackUrl: string) {
+  constructor(callbackUrl: string, httpClient: IHttpClient) {
     this.documentValidator = new MexicoDocumentValidator();
     this.creditEvaluator = new MexicoCreditEvaluator();
-    this.bankDataProvider = new MexicoBankDataProvider(callbackUrl);
+    this.bankDataProvider = new MexicoBankDataProvider(callbackUrl, httpClient);
     this.externalDataValidator = new MexicoExternalDataValidator();
   }
 

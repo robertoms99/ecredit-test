@@ -1,78 +1,64 @@
-import type { PgBoss, SendOptions, Job as PGBossJob } from 'pg-boss';
 import type { ICreditRequestRepository } from '../ports/repositories/credit-request-repository';
 import type { StatusTransitionRegistry } from '../strategies/transitions/status-transition.registry';
-import type { JobTypeMapping } from '../ports/jobs';
-import { BaseJob } from './base-job';
-import { RequestStatusCodes } from '../entities';
+import type { IJob, JobOptions, JobTypeMapping } from '../ports/jobs';
 import { AppError } from '../errors/app-error';
 
-export class StatusTransitionJob extends BaseJob<{
-  credit_request_id: string;
-  request_status_id: string;
-  request_status_code: RequestStatusCodes;
-  request_status_name?: string;
-  updated_at?: string;
-}> {
-  readonly type: keyof JobTypeMapping = 'credit_request_status_change';
-  readonly options: SendOptions = {
-    retryLimit: 5,
-    retryDelay: 5,
-  };
+export type StatusTransitionJobPayload = JobTypeMapping['credit_request_status_change'];
+
+export class StatusTransitionJob implements IJob<'credit_request_status_change'> {
+  private readonly type = 'credit_request_status_change' as const;
+  private readonly options = { retryLimit: 5, retryDelay: 5 };
 
   constructor(
-    boss: PgBoss,
     private readonly creditRequestRepository: ICreditRequestRepository,
     private readonly statusTransitionRegistry: StatusTransitionRegistry
-  ) {
-    super(boss);
+  ) { }
+
+  getType() {
+    return this.type
   }
 
-  work = async (
-    jobs: PGBossJob<{
-      credit_request_id: string;
-      request_status_id: string;
-      request_status_code: RequestStatusCodes;
-      request_status_name?: string;
-      updated_at?: string;
-    }>[]
-  ): Promise<void> => {
-    for (const job of jobs) {
-      let creditRequestId!:string;
-      try {
-        const { credit_request_id, request_status_id, request_status_code } = job.data;
-        creditRequestId=credit_request_id
-        const creditRequest = await this.creditRequestRepository.findById(credit_request_id);
+  getOptions() {
+    return this.options
+  }
 
-        if (!creditRequest) {
-          throw new AppError('NOT_FOUND', 'Credit request not found', {
-            creditRequestId: credit_request_id,
-          });
-        }
+  async work(payload: StatusTransitionJobPayload): Promise<void> {
+    const { credit_request_id, request_status_id, request_status_code } = payload;
+    try {
+      const creditRequest = await this.creditRequestRepository.findById(credit_request_id);
 
-        if (creditRequest.statusId !== request_status_id) {
-          console.log(
-            `Status mismatch for credit request ${credit_request_id}: expected ${request_status_id}, got ${creditRequest.statusId}. Skipping transition.`
-          );
-          continue;
-        }
-
-        if (!this.statusTransitionRegistry.has(request_status_code)) {
-          console.log(
-            `No transition strategy for status ${request_status_code}, skipping job`
-          );
-          continue;
-        }
-
-        const transitionStrategy = this.statusTransitionRegistry.get(request_status_code);
-        await transitionStrategy.execute(creditRequest);
-
-        console.log(
-          `Successfully processed status transition for credit request ${credit_request_id} (${request_status_code})`
-        );
-      } catch (error) {
-        console.error(`Error processing status transition for credit request ${creditRequestId}:`, error);
-        throw error
+      if (!creditRequest) {
+        throw new AppError('NOT_FOUND', 'Credit request not found', {
+          creditRequestId: credit_request_id,
+        });
       }
+
+      if (creditRequest.statusId !== request_status_id) {
+        console.log(
+          `Status mismatch for credit request ${credit_request_id}: expected ${request_status_id}, got ${creditRequest.statusId}. Skipping transition.`
+        );
+        return;
+      }
+
+      if (!this.statusTransitionRegistry.has(request_status_code)) {
+        console.log(
+          `No transition strategy for status ${request_status_code}, skipping job`
+        );
+        return;
+      }
+
+      const transitionStrategy = this.statusTransitionRegistry.get(request_status_code);
+      await transitionStrategy.execute(creditRequest);
+
+      console.log(
+        `Successfully processed status transition for credit request ${credit_request_id} (${request_status_code})`
+      );
+    } catch (error) {
+      console.error(
+        `Error processing status transition for credit request ${credit_request_id}:`,
+        error
+      );
+      throw error;
     }
-  };
+  }
 }

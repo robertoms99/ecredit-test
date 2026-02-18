@@ -1,5 +1,4 @@
 
-console.error("s",process.env.REDIS_URL)
 export const config = {
   db: {
     url: process.env.DATABASE_URL || "",
