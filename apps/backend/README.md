@@ -82,6 +82,12 @@ Swagger UI disponible en http://localhost:3000/docs
 | POST | `/api/auth/login` | Iniciar sesión |
 | GET | `/api/auth/me` | Obtener usuario actual |
 
+### Países
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/countries` | Listar países disponibles |
+
 ### Solicitudes de Crédito
 
 | Método | Ruta | Descripción |

@@ -2,7 +2,8 @@ import type { CountryConfig } from '../../types';
 
 export const MEXICO_CONFIG: CountryConfig = {
   code: 'MX',
-  name: 'Mexico',
+  name: 'México',
+  icon: '🇲🇽',
   amountLimit: 500_000,
   currency: 'MXN',
   providerUrl: process.env.MEXICO_PROVIDER_URL || 'http://localhost:5000/providers/mx',

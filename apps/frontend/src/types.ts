@@ -17,6 +17,13 @@ export interface CreditRequest {
   updatedAt: string;
 }
 
+export interface Country {
+  code: string;
+  name: string;
+  icon: string;
+  currency: string;
+}
+
 export interface ListCreditRequestsResponse {
   data: CreditRequest[];
   total: number;

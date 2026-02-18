@@ -28,6 +28,7 @@ import { ListCreditRequestsUseCase } from '../domain/use-cases/list-credit-reque
 import { UpdateCreditRequestStatusUseCase } from '../domain/use-cases/update-credit-request-status';
 import { GetStatusHistoryUseCase } from '../domain/use-cases/get-status-history';
 import { ListRequestStatusesUseCase } from '../domain/use-cases/list-request-statuses';
+import { ListCountriesUseCase } from '../domain/use-cases/list-countries';
 import { LoginUseCase } from '../domain/use-cases/login';
 import { JwtTokenSigner, BcryptPasswordHasher } from './adapters/auth/jwt-token-signer';
 import { UserRepository } from './adapters/repositories/user-repository';
@@ -130,6 +131,10 @@ export const getStatusHistoryUseCase = new GetStatusHistoryUseCase(
 
 export const listRequestStatusesUseCase = new ListRequestStatusesUseCase(
   requestStatusRepository
+);
+
+export const listCountriesUseCase = new ListCountriesUseCase(
+  countryStrategyRegistry
 );
 
 const userRepository = new UserRepository();

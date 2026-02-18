@@ -1,5 +1,6 @@
 import { CreditRequest } from '../types';
 import { getStatusName, getStatusColor } from '../constants/statusConfig';
+import { useCountries } from '../contexts/CountriesContext';
 
 interface Props {
   request: CreditRequest;
@@ -9,12 +10,10 @@ interface Props {
   onViewHistory: (request: CreditRequest) => void;
 }
 
-const countryNames: Record<string, string> = {
-  MX: 'México',
-  CO: 'Colombia',
-};
-
 export function CreditRequestCard({ request, isNew, onViewDetails, onUpdateStatus, onViewHistory }: Props) {
+  const { getCountryByCode } = useCountries();
+  const country = getCountryByCode(request.country);
+
   // Use status code if available, otherwise fall back to status name
   const statusDisplayName = request.status?.code 
     ? getStatusName(request.status.code)
@@ -22,8 +21,6 @@ export function CreditRequestCard({ request, isNew, onViewDetails, onUpdateStatu
   const statusColor = request.status?.code
     ? getStatusColor(request.status.code)
     : 'bg-gray-100 text-gray-800';
-  
-  const countryFlag = request.country === 'MX' ? '🇲🇽' : '🇨🇴';
 
   return (
     <div
@@ -34,7 +31,7 @@ export function CreditRequestCard({ request, isNew, onViewDetails, onUpdateStatu
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <span>{countryFlag}</span>
+            <span>{country?.icon || '🌍'}</span>
             <span>{request.fullName}</span>
           </h3>
           <p className="text-sm text-gray-500">{request.documentId}</p>
@@ -50,19 +47,19 @@ export function CreditRequestCard({ request, isNew, onViewDetails, onUpdateStatu
         <div>
           <p className="text-xs text-gray-500">País</p>
           <p className="text-sm font-medium text-gray-900">
-            {countryNames[request.country] || request.country}
+            {country?.name || request.country}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Monto Solicitado</p>
           <p className="text-sm font-medium text-gray-900">
-            ${request.requestedAmount.toLocaleString()}
+            ${request.requestedAmount.toLocaleString()} {country?.currency}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Ingreso Mensual</p>
           <p className="text-sm font-medium text-gray-900">
-            ${request.monthlyIncome.toLocaleString()}
+            ${request.monthlyIncome.toLocaleString()} {country?.currency}
           </p>
         </div>
         <div>

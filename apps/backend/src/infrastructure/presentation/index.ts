@@ -7,6 +7,7 @@ import creditRequestRouter from "./controllers/credit-request";
 import requestStatusRouter from "./controllers/request-status";
 import webhookRouter from "./controllers/webhook";
 import authController from "./controllers/auth";
+import countryRouter from "./controllers/country";
 import { AppError, internalError } from "../../domain/errors";
 import { config } from "../../config";
 import { openApiSpec } from "./openapi";
@@ -37,6 +38,7 @@ app.get('/docs/openapi.json', (c) => c.json(openApiSpec));
 
 app.basePath("/api")
   .route("/auth", authController)
+  .route("/countries", countryRouter)
   .route("/credit-requests", creditRequestRouter)
   .route("/request-statuses", requestStatusRouter)
   .route("/webhook", webhookRouter)

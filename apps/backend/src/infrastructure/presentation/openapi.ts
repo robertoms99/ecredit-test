@@ -10,6 +10,7 @@ export const openApiSpec = {
   ],
   tags: [
     { name: 'Auth', description: 'Autenticación' },
+    { name: 'Countries', description: 'Países disponibles' },
     { name: 'Credit Requests', description: 'Solicitudes de crédito' },
     { name: 'Webhooks', description: 'Webhooks de proveedores' },
     { name: 'Status', description: 'Estados de solicitud' },
@@ -28,6 +29,26 @@ export const openApiSpec = {
                   properties: {
                     status: { type: 'string', example: 'ok' },
                   },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/countries': {
+      get: {
+        tags: ['Countries'],
+        summary: 'Listar países disponibles',
+        description: 'Retorna la lista de países soportados por el sistema, obtenidos de las estrategias configuradas',
+        responses: {
+          '200': {
+            description: 'Lista de países',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/Country' },
                 },
               },
             },
@@ -319,6 +340,15 @@ export const openApiSpec = {
       },
     },
     schemas: {
+      Country: {
+        type: 'object',
+        properties: {
+          code: { type: 'string', example: 'MX', description: 'Código ISO del país' },
+          name: { type: 'string', example: 'México' },
+          icon: { type: 'string', example: '🇲🇽', description: 'Emoji de bandera' },
+          currency: { type: 'string', example: 'MXN', description: 'Código de moneda' },
+        },
+      },
       User: {
         type: 'object',
         properties: {

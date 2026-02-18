@@ -23,6 +23,7 @@ export function Dashboard() {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
+  const [searchId, setSearchId] = useState<string>('');
   const [statuses, setStatuses] = useState<RequestStatus[]>([]);
   const [total, setTotal] = useState(0);
   const [updatedIds, setUpdatedIds] = useState<Set<string>>(new Set());
@@ -44,6 +45,25 @@ export function Dashboard() {
   const loadRequests = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // If searching by ID, use getById endpoint
+      if (searchId.trim()) {
+        try {
+          const request = await creditRequestsApi.getById(searchId.trim());
+          setRequests([request]);
+          setTotal(1);
+        } catch (err) {
+          // If not found or error, show empty state
+          setRequests([]);
+          setTotal(0);
+          if (err instanceof Error && !err.message.includes('404')) {
+            showError(err.message);
+          }
+        }
+        return;
+      }
+
+      // Otherwise use list endpoint with filters
       const response = await creditRequestsApi.list({
         country: selectedCountry || undefined,
         status: selectedStatus || undefined,
@@ -60,7 +80,7 @@ export function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCountry, selectedStatus, dateFrom, dateTo, showError]);
+  }, [selectedCountry, selectedStatus, dateFrom, dateTo, searchId, showError]);
 
   useEffect(() => {
     loadRequests();
@@ -145,6 +165,7 @@ export function Dashboard() {
       setSelectedStatus('');
       setDateFrom('');
       setDateTo('');
+      setSearchId('');
 
       // Add new request to the list
       setRequests((prev) => [newRequest, ...prev]);
@@ -310,6 +331,8 @@ export function Dashboard() {
               selectedStatus={selectedStatus}
               onStatusChange={setSelectedStatus}
               statuses={statuses}
+              searchId={searchId}
+              onSearchIdChange={setSearchId}
             />
           </div>
         </div>

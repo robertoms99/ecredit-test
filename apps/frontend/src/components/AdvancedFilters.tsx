@@ -8,6 +8,8 @@ interface Props {
   selectedStatus: string;
   onStatusChange: (status: string) => void;
   statuses: RequestStatus[];
+  searchId: string;
+  onSearchIdChange: (id: string) => void;
 }
 
 export function AdvancedFilters({
@@ -18,6 +20,8 @@ export function AdvancedFilters({
   selectedStatus,
   onStatusChange,
   statuses,
+  searchId,
+  onSearchIdChange,
 }: Props) {
   // Get today's date in local timezone (YYYY-MM-DD format)
   const getTodayLocal = (): string => {
@@ -29,9 +33,25 @@ export function AdvancedFilters({
   };
 
   const today = getTodayLocal();
+  const hasFilters = dateFrom || dateTo || selectedStatus || searchId;
 
   return (
     <div className="flex flex-wrap gap-4 items-end">
+      {/* Search by ID */}
+      <div className="flex flex-col">
+        <label htmlFor="search-id" className="text-sm font-medium text-gray-700 mb-1">
+          Buscar por ID
+        </label>
+        <input
+          id="search-id"
+          type="text"
+          value={searchId}
+          onChange={(e) => onSearchIdChange(e.target.value)}
+          placeholder="UUID de la solicitud"
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-80"
+        />
+      </div>
+
       {/* Date From */}
       <div className="flex flex-col">
         <label htmlFor="date-from" className="text-sm font-medium text-gray-700 mb-1">
@@ -43,7 +63,8 @@ export function AdvancedFilters({
           value={dateFrom}
           onChange={(e) => onDateFromChange(e.target.value)}
           max={dateTo || today}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          disabled={!!searchId}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
       </div>
 
@@ -59,7 +80,8 @@ export function AdvancedFilters({
           onChange={(e) => onDateToChange(e.target.value)}
           min={dateFrom}
           max={today}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          disabled={!!searchId}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
       </div>
 
@@ -72,7 +94,8 @@ export function AdvancedFilters({
           id="status-filter"
           value={selectedStatus}
           onChange={(e) => onStatusChange(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          disabled={!!searchId}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
         >
           <option value="">Todos los estados</option>
           {statuses.map((status) => (
@@ -84,12 +107,13 @@ export function AdvancedFilters({
       </div>
 
       {/* Clear Filters Button */}
-      {(dateFrom || dateTo || selectedStatus) && (
+      {hasFilters && (
         <button
           onClick={() => {
             onDateFromChange('');
             onDateToChange('');
             onStatusChange('');
+            onSearchIdChange('');
           }}
           className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
         >

@@ -15,6 +15,7 @@ export interface CreditEvaluationResult {
 export interface CountryConfig {
   code: string;
   name: string;
+  icon: string;
   amountLimit: number;
   currency: string;
   providerUrl: string;

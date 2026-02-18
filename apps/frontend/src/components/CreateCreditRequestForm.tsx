@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { CreateCreditRequestPayload } from '../types';
 import { Alert } from './Alert';
+import { useCountries } from '../contexts/CountriesContext';
 
 interface CreateCreditRequestFormProps {
   onSubmit: (data: CreateCreditRequestPayload) => Promise<void>;
@@ -9,17 +10,20 @@ interface CreateCreditRequestFormProps {
 }
 
 export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: CreateCreditRequestFormProps) {
+  const { countries, isLoading: countriesLoading, getCountryByCode } = useCountries();
+  
   const [formData, setFormData] = useState<CreateCreditRequestPayload>({
-    country: 'MX',
+    country: countries[0]?.code || 'MX',
     fullName: '',
     documentId: '',
     requestedAmount: 0,
     monthlyIncome: 0,
-    // userId is now extracted from JWT token automatically
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [apiError, setApiError] = useState<string>('');
+
+  const selectedCountry = getCountryByCode(formData.country);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -93,10 +97,13 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
                 value={formData.country}
                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isLoading}
+                disabled={isLoading || countriesLoading}
               >
-                <option value="MX">🇲🇽 México</option>
-                <option value="CO">🇨🇴 Colombia</option>
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.icon} {c.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -134,7 +141,7 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.documentId ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder={formData.country === 'MX' ? 'RFC' : 'Cédula'}
+                placeholder={formData.country === 'MX' ? 'CURP' : 'Cédula'}
                 disabled={isLoading}
               />
               {errors.documentId && (
@@ -145,7 +152,7 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
             {/* Requested Amount */}
             <div>
               <label htmlFor="requestedAmount" className="block text-sm font-medium text-gray-700 mb-1">
-                Monto Solicitado * ({formData.country === 'MX' ? 'MXN' : 'COP'})
+                Monto Solicitado * ({selectedCountry?.currency || 'USD'})
               </label>
               <input
                 id="requestedAmount"
@@ -168,7 +175,7 @@ export function CreateCreditRequestForm({ onSubmit, onCancel, isLoading }: Creat
             {/* Monthly Income */}
             <div>
               <label htmlFor="monthlyIncome" className="block text-sm font-medium text-gray-700 mb-1">
-                Ingreso Mensual * ({formData.country === 'MX' ? 'MXN' : 'COP'})
+                Ingreso Mensual * ({selectedCountry?.currency || 'USD'})
               </label>
               <input
                 id="monthlyIncome"
