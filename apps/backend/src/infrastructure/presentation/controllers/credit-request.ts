@@ -185,7 +185,7 @@ router.get('/:id/history',
     const parsed = getCreditRequestParamsSchema.safeParse(value);
     if (!parsed.success) {
       const details = parsed.error.flatten();
-      throw validationError('Invalid credit request ID', details);
+      throw validationError('ID de solicitud de crédito inválido', details);
     }
     return parsed.data;
   }),

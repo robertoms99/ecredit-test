@@ -18,6 +18,21 @@ export const listCreditRequestsQuerySchema = z.object({
     message: "La fecha 'desde' debe ser anterior o igual a la fecha 'hasta'",
     path: ["from"],
   }
+).refine(
+  (data) => {
+    if (data.to) {
+      const toDate = new Date(data.to);
+      const now = new Date();
+      toDate.setHours(23, 59, 59, 999);
+      now.setHours(23, 59, 59, 999);
+      return toDate <= now;
+    }
+    return true;
+  },
+  {
+    message: "La fecha 'hasta' no puede ser mayor al día actual",
+    path: ["to"],
+  }
 );
 
 export type ListCreditRequestsQuery = z.infer<typeof listCreditRequestsQuerySchema>;

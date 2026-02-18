@@ -55,6 +55,17 @@ export interface StatusOption {
   color: string;
 }
 
+export interface RequestStatus {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  isFinal: boolean;
+  displayOrder: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface StatusTransition {
   id: string;
   reason: string | null;

@@ -118,11 +118,11 @@ export class CreditRequestRepository implements ICreditRequestRepository{
       }
 
       if (filters.from) {
-        conditions.push(gte(schema.creditRequests.createdAt, new Date(filters.from)));
+        conditions.push(gte(schema.creditRequests.requestedAt, new Date(filters.from)));
       }
 
       if (filters.to) {
-        conditions.push(lte(schema.creditRequests.createdAt, new Date(filters.to)));
+        conditions.push(lte(schema.creditRequests.requestedAt, new Date(filters.to)));
       }
 
       if (filters.userId) {
@@ -185,11 +185,11 @@ export class CreditRequestRepository implements ICreditRequestRepository{
       }
 
       if (filters.from) {
-        conditions.push(gte(schema.creditRequests.createdAt, new Date(filters.from)));
+        conditions.push(gte(schema.creditRequests.requestedAt, new Date(filters.from)));
       }
 
       if (filters.to) {
-        conditions.push(lte(schema.creditRequests.createdAt, new Date(filters.to)));
+        conditions.push(lte(schema.creditRequests.requestedAt, new Date(filters.to)));
       }
 
       if (filters.userId) {

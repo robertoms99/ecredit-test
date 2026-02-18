@@ -1,4 +1,4 @@
-import { ListCreditRequestsResponse, CreditRequest, CreateCreditRequestPayload, UpdateStatusPayload, StatusTransition } from '../types';
+import { ListCreditRequestsResponse, CreditRequest, CreateCreditRequestPayload, UpdateStatusPayload, StatusTransition, RequestStatus } from '../types';
 
 // Use environment variable for API URL, fallback to relative URL for production
 const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api` || '/api';
@@ -121,6 +121,22 @@ export const creditRequestsApi = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Failed to fetch history' }));
+      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Get all available request statuses
+   */
+  async getStatuses(): Promise<RequestStatus[]> {
+    const response = await fetch(`${API_BASE_URL}/request-statuses`, {
+      headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Error al obtener estados' }));
       throw new Error(error.message || `HTTP error! status: ${response.status}`);
     }
 

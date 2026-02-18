@@ -24,6 +24,7 @@ import { GetCreditRequestUseCase } from '../domain/use-cases/get-credit-request'
 import { ListCreditRequestsUseCase } from '../domain/use-cases/list-credit-requests';
 import { UpdateCreditRequestStatusUseCase } from '../domain/use-cases/update-credit-request-status';
 import { GetStatusHistoryUseCase } from '../domain/use-cases/get-status-history';
+import { ListRequestStatusesUseCase } from '../domain/use-cases/list-request-statuses';
 import { StatusTransitionJob } from '../domain/jobs/status-transition-job';
 import { JobManager } from './jobs/jobs-manager';
 import { DatabaseNotificationListener } from './db/notification-listener';
@@ -112,6 +113,10 @@ export const updateCreditRequestStatusUseCase = new UpdateCreditRequestStatusUse
 export const getStatusHistoryUseCase = new GetStatusHistoryUseCase(
   statusTransitionRepository,
   creditRequestRepository
+);
+
+export const listRequestStatusesUseCase = new ListRequestStatusesUseCase(
+  requestStatusRepository
 );
 
 process.on('SIGTERM', async () => {

@@ -6,4 +6,6 @@ export interface IRequestStatusRepository {
   findByCode(code: string): Promise<RequestStatus | null>;
   
   findById(id: string): Promise<RequestStatus | null>;
+  
+  listAll(): Promise<RequestStatus[]>;
 }

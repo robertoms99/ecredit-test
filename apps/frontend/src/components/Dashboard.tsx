@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { creditRequestsApi } from '../api/creditRequests';
-import { CreditRequest, CreditRequestUpdateEvent, CreateCreditRequestPayload } from '../types';
+import { CreditRequest, CreditRequestUpdateEvent, CreateCreditRequestPayload, RequestStatus } from '../types';
 import { useCreditRequestUpdates } from '../hooks/useSocket';
 import { CreditRequestCard } from './CreditRequestCard';
 import { CountryFilter } from './CountryFilter';
+import { AdvancedFilters } from './AdvancedFilters';
 import { CreateCreditRequestForm } from './CreateCreditRequestForm';
 import { CreditRequestDetailsModal } from './CreditRequestDetailsModal';
 import { UpdateStatusModal } from './UpdateStatusModal';
@@ -19,6 +20,10 @@ export function Dashboard() {
   const [requests, setRequests] = useState<CreditRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [statuses, setStatuses] = useState<RequestStatus[]>([]);
   const [total, setTotal] = useState(0);
   const [updatedIds, setUpdatedIds] = useState<Set<string>>(new Set());
 
@@ -38,6 +43,9 @@ export function Dashboard() {
       setLoading(true);
       const response = await creditRequestsApi.list({
         country: selectedCountry || undefined,
+        status: selectedStatus || undefined,
+        from: dateFrom ? new Date(dateFrom).toISOString() : undefined,
+        to: dateTo ? new Date(dateTo + 'T23:59:59').toISOString() : undefined,
         limit: 100,
       });
       setRequests(response.data);
@@ -49,11 +57,25 @@ export function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCountry, showError]);
+  }, [selectedCountry, selectedStatus, dateFrom, dateTo, showError]);
 
   useEffect(() => {
     loadRequests();
   }, [loadRequests]);
+
+  // Load statuses on mount
+  useEffect(() => {
+    const loadStatuses = async () => {
+      try {
+        const fetchedStatuses = await creditRequestsApi.getStatuses();
+        setStatuses(fetchedStatuses);
+      } catch (err) {
+        console.error('Error loading statuses:', err);
+        // Don't show error notification for this, just log it
+      }
+    };
+    loadStatuses();
+  }, []);
 
   const handleCreditRequestUpdate = useCallback(
     (event: CreditRequestUpdateEvent) => {
@@ -109,6 +131,12 @@ export function Dashboard() {
       // Remove userId from payload - it will be extracted from JWT token
       const { userId, ...payload } = data;
       const newRequest = await creditRequestsApi.create(payload);
+
+      // Clear all filters to ensure new request is visible
+      setSelectedCountry('');
+      setSelectedStatus('');
+      setDateFrom('');
+      setDateTo('');
 
       // Add new request to the list
       setRequests((prev) => [newRequest, ...prev]);
@@ -261,10 +289,21 @@ export function Dashboard() {
           </div>
 
           {/* Filters */}
-          <CountryFilter
-            country={selectedCountry}
-            onCountryChange={setSelectedCountry}
-          />
+          <div className="space-y-4">
+            <CountryFilter
+              country={selectedCountry}
+              onCountryChange={setSelectedCountry}
+            />
+            <AdvancedFilters
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              onDateFromChange={setDateFrom}
+              onDateToChange={setDateTo}
+              selectedStatus={selectedStatus}
+              onStatusChange={setSelectedStatus}
+              statuses={statuses}
+            />
+          </div>
         </div>
 
         {/* Loading State */}

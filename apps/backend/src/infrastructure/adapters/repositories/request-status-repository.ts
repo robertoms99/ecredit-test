@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { RequestStatus, RequestStatusCodes } from "../../../domain/entities/request-status";
 import { IRequestStatusRepository } from "../../../domain/ports/repositories/request-status-repository";
 import { requestStatuses } from "../../db/schemas";
@@ -39,6 +39,20 @@ export class RequestStatusRepository implements IRequestStatusRepository {
     } catch (error: any) {
       throw new AppError('DATABASE_ERROR', 'Failed to find request status by id', {
         id,
+        error: error.message,
+      });
+    }
+  }
+
+  async listAll(): Promise<RequestStatus[]> {
+    try {
+      const result = await this.db
+        .select()
+        .from(requestStatuses)
+        .orderBy(asc(requestStatuses.displayOrder));
+      return result;
+    } catch (error: any) {
+      throw new AppError('DATABASE_ERROR', 'Error al obtener lista de estados', {
         error: error.message,
       });
     }

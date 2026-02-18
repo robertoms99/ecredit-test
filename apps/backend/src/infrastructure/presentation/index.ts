@@ -3,6 +3,7 @@ import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
 import creditRequestRouter from "./controllers/credit-request";
+import requestStatusRouter from "./controllers/request-status";
 import webhookRouter from "./controllers/webhook";
 import authController from "./controllers/auth";
 import { AppError, internalError } from "../../domain/errors";
@@ -32,6 +33,7 @@ app.get('/health', (c) => c.json({ status: 'ok' }));
 app.basePath("/api")
   .route("/auth", authController)
   .route("/credit-requests", creditRequestRouter)
+  .route("/request-statuses", requestStatusRouter)
   .route("/webhook", webhookRouter)
 
 console.log(`🔐 CORS configured for frontend: ${config.cors.frontendUrl}`);
