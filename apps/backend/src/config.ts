@@ -8,7 +8,7 @@ export const config = {
     defaultTtlSeconds: Number(process.env.CACHE_TTL_SECONDS || 60),
   },
   server: {
-    internalHost: process.env.INTERNAL_HOST || "",
+    originApi: process.env.ORIGIN_API || "",
     port: process.env.PORT || 3000,
   },
   cors: {

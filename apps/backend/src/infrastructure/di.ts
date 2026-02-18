@@ -52,7 +52,7 @@ const requestStatusRepository = new CachedRequestStatusRepository(
 const bankInfoRepository = new BankInfoRepository(db);
 const statusTransitionRepository = new StatusTransitionRepository(db);
 
-const webhookCallbackUrl = `http://${config.server.internalHost}:${config.server.port}/api/webhook/process-bank-data`;
+const webhookCallbackUrl = `${config.server.originApi}/api/webhook/process-bank-data`;
 const httpClient = new HttpClient();
 const countryStrategies = createCountryStrategies(webhookCallbackUrl, httpClient);
 const countryStrategyRegistry = new CountryStrategyRegistry();

@@ -67,7 +67,7 @@ services:
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
-      INTERNAL_HOST: backend #nombre del servicio
+      ORIGIN_API: http://backend:${BACKEND_PORT} #nombre del servicio
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
       REDIS_URL: redis://redis:${REDIS_PORT:-6379}
       JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
