@@ -2,6 +2,12 @@
 
 Sistema de gestión de solicitudes de crédito. Monorepo con backend, frontend y simulador de proveedores bancarios.
 
+## Documentación
+
+- [MVP y Visión del Producto](docs/mvp.md) - Contexto, alcance y limitaciones del MVP
+- [Arquitectura](docs/architecture.md) - Diseño del sistema, patrones y estructura
+- [Evaluación de Riesgo](docs/evaluation.md) - Cómo funciona la evaluación crediticia
+
 ## Stack Tecnológico
 
 | Componente | Tecnología |
@@ -125,7 +131,7 @@ bun run db:seed          # Poblar datos de prueba
 bun run worker           # Iniciar worker de jobs
 ```
 
-## Documentación
+## Documentación de Aplicaciones
 
 - [Backend](apps/backend/README.md)
 - [Frontend](apps/frontend/README.md)
