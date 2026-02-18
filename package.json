@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "author": "Roberto Molina",
+  "repository": {
+    "url": "https://github.com/robertoms99/ecredit-test"
+  },
+  "homepage": "https://ecredit.robertomolina.dev/",
   "workspaces": [
     "apps/*"
   ],
