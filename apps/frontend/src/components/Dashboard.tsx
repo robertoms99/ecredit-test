@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { creditRequestsApi } from '../api/creditRequests';
 import { CreditRequest, CreditRequestUpdateEvent, CreateCreditRequestPayload, RequestStatus } from '../types';
 import { useCreditRequestUpdates } from '../hooks/useSocket';
@@ -8,7 +8,7 @@ import { AdvancedFilters } from './AdvancedFilters';
 import { CreateCreditRequestForm } from './CreateCreditRequestForm';
 import { CreditRequestDetailsModal } from './CreditRequestDetailsModal';
 import { UpdateStatusModal } from './UpdateStatusModal';
-import { StatusHistoryModal } from './StatusHistoryModal';
+import { StatusHistoryModal, StatusHistoryModalRef } from './StatusHistoryModal';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../contexts/NotificationContext';
 
@@ -33,6 +33,9 @@ export function Dashboard() {
   const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<CreditRequest | null>(null);
+
+  // Ref for StatusHistoryModal to refresh it when receiving real-time updates
+  const historyModalRef = useRef<StatusHistoryModalRef>(null);
 
   // Loading states for actions
   const [isCreating, setIsCreating] = useState(false);
@@ -95,7 +98,7 @@ export function Dashboard() {
                   status: {
                     id: event.statusId,
                     name: event.statusName,
-                    code: event.statusCode, // ✅ Now includes statusCode for proper mapping
+                    code: event.statusCode,
                   },
                   updatedAt: event.updatedAt,
                 }
@@ -108,6 +111,11 @@ export function Dashboard() {
         }
       });
 
+      // If history modal is open and the update is for the selected request, refresh it
+      if (showHistoryModal && selectedRequest?.id === event.creditRequestId) {
+        historyModalRef.current?.refresh();
+      }
+
       // Mark as updated for animation
       setUpdatedIds((prev) => new Set(prev).add(event.creditRequestId));
 
@@ -119,7 +127,7 @@ export function Dashboard() {
         });
       }, 3000);
     },
-    [loadRequests]
+    [loadRequests, showHistoryModal, selectedRequest]
   );
 
   const { isConnected } = useCreditRequestUpdates(handleCreditRequestUpdate);
@@ -382,6 +390,7 @@ export function Dashboard() {
       {/* Status History Modal */}
       {showHistoryModal && selectedRequest && (
         <StatusHistoryModal
+          ref={historyModalRef}
           creditRequestId={selectedRequest.id}
           clientName={selectedRequest.fullName}
           onClose={() => {

@@ -30,6 +30,9 @@ export interface CreditRequestUpdateEvent {
   statusCode: string; // e.g., "CREATED", "EVALUATING", "APPROVED", etc.
   statusName: string;
   updatedAt: string;
+  reason: string | null;
+  statusTransitionId: string;
+  fromStatusId: string;
 }
 
 // Payload types for API requests

@@ -33,8 +33,11 @@ export class WebSocketServer {
     creditRequestId: string;
     statusId: string;
     statusName: string;
+    statusCode: RequestStatusCodes;
     updatedAt: string;
-    statusCode: RequestStatusCodes
+    reason: string | null;
+    statusTransitionId: string;
+    fromStatusId: string;
   }) {
     console.log('📡 Emitting credit-request-updated:', data);
     this.io.emit('credit-request-updated', data);

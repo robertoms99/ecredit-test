@@ -10,6 +10,8 @@ export class StatusTransitionJob extends BaseJob<{
   credit_request_id: string;
   request_status_id: string;
   request_status_code: RequestStatusCodes;
+  request_status_name?: string;
+  updated_at?: string;
 }> {
   readonly type: keyof JobTypeMapping = 'credit_request_status_change';
   readonly options: SendOptions = {
@@ -30,6 +32,8 @@ export class StatusTransitionJob extends BaseJob<{
       credit_request_id: string;
       request_status_id: string;
       request_status_code: RequestStatusCodes;
+      request_status_name?: string;
+      updated_at?: string;
     }>[]
   ): Promise<void> => {
     for (const job of jobs) {

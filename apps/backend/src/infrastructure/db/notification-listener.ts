@@ -3,12 +3,16 @@ import type { IJobManager } from '../../domain/ports/jobs';
 import type { RequestStatusCodes } from '../../domain/entities';
 import type { WebSocketServer } from '../websocket/websocket-server';
 
-interface CreditRequestStatusChangePayload {
+interface StatusTransitionPayload {
   credit_request_id: string;
-  request_status_id: string;
-  request_status_code: RequestStatusCodes;
-  request_status_name: string;
-  updated_at: string;
+  status_transition_id: string;
+  from_status_id: string;
+  to_status_id: string;
+  status_code: RequestStatusCodes;
+  status_name: string;
+  reason: string | null;
+  changed_by_user_id: string;
+  created_at: string;
 }
 
 export class DatabaseNotificationListener {
@@ -33,20 +37,26 @@ export class DatabaseNotificationListener {
       await this.client.connect();
       console.log('[DB Listener] Connected to database for notifications');
 
-      await this.client.query('LISTEN credit_request_status_change');
-      console.log('[DB Listener] Listening to credit_request_status_change channel');
+      await this.client.query('LISTEN status_transition');
+      console.log('[DB Listener] Listening to status_transition channel');
 
       this.client.on('notification', async (msg) => {
-        if (msg.channel === 'credit_request_status_change' && msg.payload) {
+        if (msg.channel === 'status_transition' && msg.payload) {
           try {
 
-            const payload: CreditRequestStatusChangePayload = JSON.parse(msg.payload);
+            const payload: StatusTransitionPayload = JSON.parse(msg.payload);
 
             console.log(
-              `[DB Listener] Received notification: credit_request_id=${payload.credit_request_id}, status=${payload.request_status_code}`
+              `[DB Listener] Received status transition: credit_request_id=${payload.credit_request_id}, status=${payload.status_code}, reason=${payload.reason || 'N/A'}`
             );
 
-            await this.jobManager.emit('credit_request_status_change', payload);
+            await this.jobManager.emit('credit_request_status_change', {
+              credit_request_id: payload.credit_request_id,
+              request_status_id: payload.to_status_id,
+              request_status_code: payload.status_code,
+              request_status_name: payload.status_name,
+              updated_at: payload.created_at
+            });
 
             console.log(
               `[DB Listener] Emitted job for credit request ${payload.credit_request_id}`
@@ -55,10 +65,13 @@ export class DatabaseNotificationListener {
             if (this.wsServer) {
               this.wsServer.emitCreditRequestUpdate({
                 creditRequestId: payload.credit_request_id,
-                statusId: payload.request_status_id,
-                statusName: payload.request_status_name,
-                updatedAt: payload.updated_at,
-                statusCode: payload.request_status_code
+                statusId: payload.to_status_id,
+                statusName: payload.status_name,
+                statusCode: payload.status_code,
+                updatedAt: payload.created_at,
+                reason: payload.reason,
+                statusTransitionId: payload.status_transition_id,
+                fromStatusId: payload.from_status_id
               });
               console.log(
                 `[DB Listener] Emitted WebSocket event for credit request ${payload.credit_request_id}`
@@ -92,7 +105,7 @@ export class DatabaseNotificationListener {
     }
 
     try {
-      await this.client.query('UNLISTEN credit_request_status_change');
+      await this.client.query('UNLISTEN status_transition');
       await this.client.end();
       this.isListening = false;
       console.log('[DB Listener] Stopped listening to database notifications');

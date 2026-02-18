@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { StatusTransition } from '../types';
 import { StatusHistoryTimeline } from './StatusHistoryTimeline';
 import { creditRequestsApi } from '../api/creditRequests';
@@ -9,13 +9,17 @@ interface StatusHistoryModalProps {
   onClose: () => void;
 }
 
-export function StatusHistoryModal({ creditRequestId, clientName, onClose }: StatusHistoryModalProps) {
-  const [history, setHistory] = useState<StatusTransition[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export interface StatusHistoryModalRef {
+  refresh: () => void;
+}
 
-  useEffect(() => {
-    const fetchHistory = async () => {
+export const StatusHistoryModal = forwardRef<StatusHistoryModalRef, StatusHistoryModalProps>(
+  ({ creditRequestId, clientName, onClose }, ref) => {
+    const [history, setHistory] = useState<StatusTransition[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchHistory = useCallback(async () => {
       try {
         setIsLoading(true);
         setError(null);
@@ -27,10 +31,16 @@ export function StatusHistoryModal({ creditRequestId, clientName, onClose }: Sta
       } finally {
         setIsLoading(false);
       }
-    };
+    }, [creditRequestId]);
 
-    fetchHistory();
-  }, [creditRequestId]);
+    useEffect(() => {
+      fetchHistory();
+    }, [fetchHistory]);
+
+    // Expose refresh method to parent component
+    useImperativeHandle(ref, () => ({
+      refresh: fetchHistory
+    }));
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -89,4 +99,4 @@ export function StatusHistoryModal({ creditRequestId, clientName, onClose }: Sta
       </div>
     </div>
   );
-}
+});
