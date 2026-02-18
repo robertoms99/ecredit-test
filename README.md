@@ -26,7 +26,7 @@ apps/
 
 ### Requisitos
 
-- [Bun](https://bun.sh/) >= 1.1.0
+- [Bun](https://bun.sh/docs/installation) >= 1.1.0 (o usar [mise](https://mise.jdx.dev/getting-started.html) para gestionar versiones automáticamente)
 - Docker y Docker Compose
 
 ### 1. Levantar servicios de infraestructura
