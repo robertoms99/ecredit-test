@@ -1,5 +1,5 @@
 import type { PgBoss, SendOptions, Job as PGBossJob } from 'pg-boss';
-import type { CreditRequestRepository } from '../../infrastructure/adapters/repositories/credit-request-repository';
+import type { ICreditRequestRepository } from '../ports/repositories/credit-request-repository';
 import type { StatusTransitionRegistry } from '../strategies/transitions/status-transition.registry';
 import type { JobTypeMapping } from '../ports/jobs';
 import { BaseJob } from './base-job';
@@ -21,7 +21,7 @@ export class StatusTransitionJob extends BaseJob<{
 
   constructor(
     boss: PgBoss,
-    private readonly creditRequestRepository: CreditRequestRepository,
+    private readonly creditRequestRepository: ICreditRequestRepository,
     private readonly statusTransitionRegistry: StatusTransitionRegistry
   ) {
     super(boss);

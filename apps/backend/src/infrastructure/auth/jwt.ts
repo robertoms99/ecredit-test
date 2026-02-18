@@ -10,9 +10,6 @@ export interface JWTPayload {
   role: string;
 }
 
-/**
- * Sign a JWT token with user data
- */
 export async function signJWT(payload: JWTPayload): Promise<string> {
   const token = await new SignJWT({
     userId: payload.userId,
@@ -27,9 +24,6 @@ export async function signJWT(payload: JWTPayload): Promise<string> {
   return token;
 }
 
-/**
- * Verify and decode a JWT token
- */
 export async function verifyJWT(token: string): Promise<JWTPayload> {
   try {
     const { payload } = await jwtVerify(token, secret);
@@ -44,20 +38,13 @@ export async function verifyJWT(token: string): Promise<JWTPayload> {
   }
 }
 
-/**
- * Hash a password using Bun's built-in hasher
- */
 export async function hashPassword(password: string): Promise<string> {
-  // Bun provides Bun.password API for hashing with bcrypt
   return await Bun.password.hash(password, {
     algorithm: 'bcrypt',
-    cost: 10, // rounds
+    cost: 10,
   });
 }
 
-/**
- * Verify a password against a hash
- */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   try {
     return await Bun.password.verify(password, hash, 'bcrypt');

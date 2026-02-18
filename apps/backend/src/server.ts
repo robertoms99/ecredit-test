@@ -57,4 +57,3 @@ httpServer.on('request', async (req: IncomingMessage, res: ServerResponse) => {
 await import('./infrastructure/di');
 
 await startHttpServer();
-console.log(`✅ Socket.IO server initialized`);

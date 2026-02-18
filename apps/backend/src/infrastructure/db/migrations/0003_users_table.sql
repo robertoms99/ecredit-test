@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email);
 
--- Trigger para updated_at
 CREATE OR REPLACE FUNCTION update_users_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN

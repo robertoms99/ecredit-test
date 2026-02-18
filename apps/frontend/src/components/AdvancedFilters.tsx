@@ -76,7 +76,7 @@ export function AdvancedFilters({
         >
           <option value="">Todos los estados</option>
           {statuses.map((status) => (
-            <option key={status.id} value={status.code}>
+            <option key={status.id} value={status.id}>
               {status.name}
             </option>
           ))}

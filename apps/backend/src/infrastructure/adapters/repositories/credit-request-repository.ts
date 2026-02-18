@@ -33,7 +33,6 @@ export class CreditRequestRepository implements ICreditRequestRepository{
 
       return {
         ...record.creditRequest,
-        // Ensure dates are Date objects (Drizzle should handle this)
         requestedAt: record.creditRequest.requestedAt instanceof Date
           ? record.creditRequest.requestedAt
           : new Date(record.creditRequest.requestedAt),
@@ -106,6 +105,7 @@ export class CreditRequestRepository implements ICreditRequestRepository{
   }
 
   async list(filters: ListCreditRequestsFilters): Promise<CreditRequest[]> {
+    console.log("[CACHE_MISS, credit-request-repository.list]")
     try {
       const conditions = [];
 
@@ -147,7 +147,6 @@ export class CreditRequestRepository implements ICreditRequestRepository{
 
       return results.map(r => ({
         ...r.creditRequest,
-        // Ensure dates are Date objects
         requestedAt: r.creditRequest.requestedAt instanceof Date
           ? r.creditRequest.requestedAt
           : new Date(r.creditRequest.requestedAt),

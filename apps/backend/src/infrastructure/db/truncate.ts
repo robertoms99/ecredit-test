@@ -1,14 +1,9 @@
 import { db } from './client';
 import { sql } from 'drizzle-orm';
 
-/**
- * Utility script to safely truncate all tables for testing
- * This respects foreign key constraints
- */
+
 async function truncateTables() {
   try {
-    console.log('🗑️  Truncating all tables (respecting constraints)...\n');
-
     // Disable triggers temporarily to avoid issues
     await db.execute(sql`SET session_replication_role = 'replica'`);
 

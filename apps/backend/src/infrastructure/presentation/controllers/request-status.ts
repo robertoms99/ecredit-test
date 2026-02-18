@@ -4,10 +4,6 @@ import { AppError } from '../../../domain/errors/app-error';
 
 const router = new Hono();
 
-/**
- * GET /api/request-statuses
- * List all available request statuses
- */
 router.get('/', async (c) => {
   try {
     const statuses = await listRequestStatusesUseCase.execute();

@@ -9,7 +9,7 @@ export interface UpdateCreditRequestStatusInput {
   statusCode: string;
   reason?: string;
   triggeredBy?: 'user' | 'system' | 'webhook' | 'provider';
-  userId?: string; // For tracking which admin made the change
+  userId?: string;
   metadata?: Record<string, any>;
 }
 

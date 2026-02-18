@@ -10,7 +10,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      # Persistent data
       - postgres_data:/var/lib/postgresql/data
       # Init scripts (migrations)
       - ./apps/backend/src/infrastructure/db/migrations:/docker-entrypoint-initdb.d:ro
@@ -23,7 +22,21 @@ services:
     networks:
       - ecredit-network
 
-  # Provider Simulator
+  redis:
+    image: redis:7-alpine
+    container_name: ecredit-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:${REDIS_PORT:-6379}"
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "${REDIS_PORT:-6379}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecredit-network
+
   provider-sim:
     build:
       context: ./apps/provider-sim
@@ -45,7 +58,6 @@ services:
     networks:
       - ecredit-network
 
-  # Backend API
   backend:
     build:
       context: ./apps/backend
@@ -58,6 +70,7 @@ services:
     environment:
       INTERNAL_HOST: backend #nombre del servicio
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
+      REDIS_URL: redis://redis:${REDIS_PORT:-6379}
       JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
       FRONTEND_URL: http://localhost:${FRONTEND_PORT}
       MEXICO_PROVIDER_URL: http://provider-sim:${PROVIDER_PORT}/providers/mx
@@ -69,6 +82,8 @@ services:
         condition: service_healthy
       provider-sim:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT}/health"]
       interval: 15s
@@ -78,7 +93,6 @@ services:
     networks:
       - ecredit-network
 
-  # Frontend UI
   frontend:
     build:
       context: ./apps/frontend
@@ -94,6 +108,8 @@ services:
       API_URL: http://localhost:${BACKEND_PORT}
     depends_on:
       backend:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${FRONTEND_PORT}/"]

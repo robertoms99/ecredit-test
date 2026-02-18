@@ -23,26 +23,22 @@ export class LoginUseCase {
   async execute(request: LoginRequest): Promise<LoginResponse> {
     const { email, password } = request;
 
-    // Find user by email
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
       throw new AppError('AUTH_FAILED','Credenciales inválidas');
     }
 
-    // Check if user is active
     if (!user.isActive) {
       throw new AppError('AUTH_FAILED','Token inválido o expirado');
     }
 
-    // Verify password
     const isPasswordValid = await verifyPassword(password, user.passwordHash);
 
     if (!isPasswordValid) {
       throw new AppError('AUTH_FAILED','Credenciales inválidas');
     }
 
-    // Generate JWT token
     const token = await signJWT({
       userId: user.id,
       email: user.email,

@@ -6,7 +6,10 @@ import { WebSocketServer } from './websocket/websocket-server';
 import { httpServer } from './http-server';
 
 import { CreditRequestRepository } from './adapters/repositories/credit-request-repository';
+import { CachedCreditRequestRepository } from './adapters/repositories/decorators/cached-credit-request-repository';
+import { RedisCache } from './cache/redis-cache';
 import { RequestStatusRepository } from './adapters/repositories/request-status-repository';
+import { CachedRequestStatusRepository } from './adapters/repositories/decorators/cached-request-status-repository';
 import { BankInfoRepository } from './adapters/repositories/bank-info-repository';
 import { StatusTransitionRepository } from './adapters/repositories/status-transition-repository';
 import {
@@ -31,8 +34,17 @@ import { DatabaseNotificationListener } from './db/notification-listener';
 
 export const wsServer = new WebSocketServer(httpServer);
 
-const creditRequestRepository = new CreditRequestRepository(db);
-const requestStatusRepository = new RequestStatusRepository(db);
+const redisCache = new RedisCache(config.cache.redisUrl);
+const creditRequestRepository = new CachedCreditRequestRepository(
+  new CreditRequestRepository(db),
+  redisCache,
+  config.cache.defaultTtlSeconds,
+);
+const requestStatusRepository = new CachedRequestStatusRepository(
+  new RequestStatusRepository(db),
+  redisCache,
+  300,
+);
 const bankInfoRepository = new BankInfoRepository(db);
 const statusTransitionRepository = new StatusTransitionRepository(db);
 

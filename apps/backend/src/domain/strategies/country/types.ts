@@ -1,7 +1,3 @@
-import type { CreditRequest } from '../../entities/credit-request';
-import type { NewBankingInfo } from '../../entities/banking-info';
-
-
 export interface DocumentValidationResult {
   isValid: boolean;
   errors?: string[];

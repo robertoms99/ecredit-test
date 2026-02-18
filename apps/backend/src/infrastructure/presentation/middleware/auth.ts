@@ -8,16 +8,6 @@ export interface AuthPayload {
   role: string;
 }
 
-/**
- * JWT Authentication Middleware
- *
- * Extracts and verifies the JWT token from the Authorization header.
- * If valid, adds the decoded payload to the context as 'auth'.
- * If invalid or missing, returns a 401 Unauthorized response.
- *
- * Usage:
- * app.use('/api/protected/*', jwtMiddleware);
- */
 export async function jwtMiddleware(c: Context, next: Next) {
   const authHeader = c.req.header('Authorization');
 
@@ -25,12 +15,12 @@ export async function jwtMiddleware(c: Context, next: Next) {
     return c.json({ error: 'No autorizado - No se proporcionó token' }, 401);
   }
 
-  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+  // Remove 'Bearer ' prefix
+  const token = authHeader.substring(7);
 
   try {
     const payload = await verifyJWT(token);
 
-    // Add auth payload to context
     c.set('auth', {
       userId: payload.userId,
       email: payload.email,
@@ -43,9 +33,6 @@ export async function jwtMiddleware(c: Context, next: Next) {
   }
 }
 
-/**
- * Helper to get auth payload from context
- */
 export function getAuth(c: Context): AuthPayload {
   const auth = c.get('auth');
   if (!auth) {

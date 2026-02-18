@@ -36,7 +36,7 @@ export class CreateCreditRequestUseCase {
       console.log('[CreateCreditRequest] Creating initial transition log');
       await this.transitionRepository.create({
         creditRequestId: createdCreditRequest.id,
-        fromStatusId: null, // Initial state has no previous status
+        fromStatusId: null,
         toStatusId: requestStatus.id,
         reason: 'Solicitud creada',
         triggeredBy: 'user',

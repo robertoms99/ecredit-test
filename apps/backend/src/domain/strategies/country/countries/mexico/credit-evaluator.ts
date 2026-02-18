@@ -32,7 +32,7 @@ export class MexicoCreditEvaluator implements ICreditEvaluator {
       creditScoreOk: creditScore >= (MEXICO_CONFIG.minCreditScore ?? 600),
       debtToIncomeOk: debtToIncomeRatio <= (MEXICO_CONFIG.maxDebtToIncomeRatio ?? 0.4),
       amountWithinLimit: requestedAmount <= MEXICO_CONFIG.amountLimit,
-      sufficientIncome: monthlyIncome >= requestedAmount * 0.15, // At least 15% of requested amount
+      sufficientIncome: monthlyIncome >= requestedAmount * 0.15,
       positiveBalance: accountBalance >= 0,
     };
 

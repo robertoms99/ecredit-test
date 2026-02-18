@@ -23,10 +23,6 @@ async function seed() {
       .onConflictDoNothing();
   }
 
-  // Create admin users
-  // These users are administrators who create credit requests on behalf of clients
-  // Each admin only sees the credit requests they created themselves
-
   const adminUsers = [
     {
       email: 'admin1@ecredit.com',
@@ -70,7 +66,6 @@ async function seed() {
   console.log('     - Password: admin123456');
 }
 
-// Only run if called directly (not imported)
 if (import.meta.main) {
   seed()
     .then(() => process.exit(0))

@@ -7,7 +7,7 @@ import { statusTransitions } from './status-transition';
 
 export const creditRequests = pgTable('credit_requests', {
   id: uuid('id').defaultRandom().primaryKey(),
-  country: varchar('country', { length: 2 }).notNull(), // MX, CO
+  country: varchar('country', { length: 2 }).notNull(),
   fullName: varchar('full_name', { length: 255 }).notNull(),
   documentId: varchar('document_id', { length: 64 }).notNull(),
   requestedAmount: doublePrecision('requested_amount').notNull(),
