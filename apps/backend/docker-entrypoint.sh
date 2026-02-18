@@ -5,9 +5,6 @@ echo "🚀Starting eCredit Backend..."
 
 echo "⏳ Waiting for database..."
 
-DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\(.*\):.*/\1/p')
-DB_PORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
-
 max_attempts=30
 attempt=0
 
