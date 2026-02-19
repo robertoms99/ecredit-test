@@ -6,7 +6,7 @@ export const COLOMBIA_CONFIG: CountryConfig = {
   icon: '🇨🇴',
   amountLimit: 100_000_000,
   currency: 'COP',
-  providerUrl: process.env.COLOMBIA_PROVIDER_URL || 'http://localhost:5000/providers/co',
+  providerUrl: process.env.COLOMBIA_PROVIDER_URL || 'http://localhost:3001/providers/co',
   providerName: 'Colombia Bank Data Provider',
   documentIdLabel: 'Cédula',
   // CC format: 6-10 digits

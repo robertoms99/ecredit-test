@@ -6,7 +6,7 @@ export const MEXICO_CONFIG: CountryConfig = {
   icon: '🇲🇽',
   amountLimit: 500_000,
   currency: 'MXN',
-  providerUrl: process.env.MEXICO_PROVIDER_URL || 'http://localhost:5000/providers/mx',
+  providerUrl: process.env.MEXICO_PROVIDER_URL || 'http://localhost:3001/providers/mx',
   providerName: 'Mexico Bank Data Provider',
   documentIdLabel: 'CURP',
   // CURP format: 4 letters + 6 digits (YYMMDD) + 1 letter + 5 alphanumeric

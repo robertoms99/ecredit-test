@@ -316,7 +316,7 @@ app.get('/test-users', (_req: Request, res: Response) => {
   });
 });
 
-const PORT = process.env.PROVIDER_PORT || 5000;
+const PORT = process.env.PROVIDER_PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`\n🚀 Provider Simulator running on http://localhost:${PORT}`);
