@@ -11,7 +11,7 @@ config :ecredit, EcreditWeb.Endpoint,
     formats: [json: EcreditWeb.ErrorJSON],
     layout: false
   ],
- # pubsub_server: Ecredit.PubSub,
+ pubsub_server: Ecredit.PubSub,
   live_view: [signing_salt: "KDibu0cd"]
 
 config :ecredit, Oban,

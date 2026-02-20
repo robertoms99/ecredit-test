@@ -5,6 +5,7 @@ defmodule Ecredit.Credits do
   """
   import Ecto.Query
 
+  require Logger
   alias Ecredit.Repo
   alias Ecredit.Credits.{CreditRequest, RequestStatus, StatusTransition}
   alias Ecredit.Banking.BankingInfo
@@ -57,7 +58,6 @@ defmodule Ecredit.Credits do
       |> maybe_filter_to(opts[:to])
 
     total = Repo.aggregate(query, :count)
-
     data =
       query
       |> limit(^limit)

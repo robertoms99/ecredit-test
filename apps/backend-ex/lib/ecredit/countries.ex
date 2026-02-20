@@ -77,7 +77,7 @@ defmodule Ecredit.Countries do
   def request_bank_data(country_code, payload) do
     case get_strategy(country_code) do
       nil -> {:error, "Unsupported country: #{country_code}"}
-      strategy -> {:ok, strategy.request_bank_data(payload)}
+      strategy -> strategy.request_bank_data(payload)
     end
   end
 

@@ -57,7 +57,15 @@ defmodule Ecredit.StatusTransitionListener do
 
     StatusTransitionWorker.enqueue(%{ credit_request_id: credit_request_id, updated_at: updated_at,request_status_id: to_status_id,request_status_code: status_code, request_status_name: status_name })
 
-    CreditRequestChannel.broadcast_status_update(credit_request_id, {status_transition_id, to_status_id,status_code,status_name,updated_at,reason,from_status_id })
+    CreditRequestChannel.broadcast_status_update(credit_request_id, %{
+      status_transition_id: status_transition_id,
+      to_status_id: to_status_id,
+      status_code: status_code,
+      status_name: status_name,
+      updated_at: updated_at,
+      reason: reason,
+      from_status_id: from_status_id
+    })
     Logger.info("Broadcasted status update for credit request #{credit_request_id}")
   end
 

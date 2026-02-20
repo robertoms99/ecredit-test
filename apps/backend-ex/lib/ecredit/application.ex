@@ -8,7 +8,7 @@ defmodule Ecredit.Application do
     children = [
       Ecredit.Repo,
       {DNSCluster, query: Application.get_env(:ecredit, :dns_cluster_query) || :ignore},
-      #{Phoenix.PubSub, name: Ecredit.PubSub},
+      {Phoenix.PubSub, name: Ecredit.PubSub},
       {Oban, Application.fetch_env!(:ecredit, Oban)},
       Ecredit.StatusTransitionListener,
       EcreditWeb.Endpoint

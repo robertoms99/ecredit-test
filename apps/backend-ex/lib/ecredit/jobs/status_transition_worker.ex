@@ -39,7 +39,6 @@ defmodule Ecredit.Jobs.StatusTransitionWorker do
           :ok
         else
           execute_transition(credit_request)
-          Logger.info("Successfully processed status transition for credit request #{id} (#{status_code}")
         end
     end
   end
@@ -47,20 +46,21 @@ defmodule Ecredit.Jobs.StatusTransitionWorker do
   defp execute_transition(%{status: %{code: "CREATED"}} = credit_request) do
     Logger.info("Processing CREATED status for #{credit_request.id}")
 
-    case Countries.request_bank_data(credit_request.country,%{credit_request: credit_request, callback_url: build_callback_url()}) do
-      initial_bank_info ->
-        {:ok, _banking_info} =
-          Banking.create_banking_info(initial_bank_info)
+    case Countries.request_bank_data(
+      credit_request.country,
+      %{credit_request: credit_request, callback_url: build_callback_url()}
+    ) do
+        {:ok, initial_bank_info} ->
+          {:ok, _banking_info} = Banking.create_banking_info(%{credit_request_id: credit_request.id, fetch_status: initial_bank_info.fetch_status, external_request_id: initial_bank_info.external_request_id, provider_name: initial_bank_info.provider_name})
 
-        {:ok, _updated} =
-          Credits.update_credit_request_status(
-            credit_request,
-            "PENDING_FOR_BANK_DATA",
-            "system",
-            "Bank data requested"
-          )
-
-        :ok
+          {:ok, _updated} =
+            Credits.update_credit_request_status(
+              credit_request,
+              "PENDING_FOR_BANK_DATA",
+              "system",
+              "Bank data requested"
+            )
+          :ok
 
       {:provider_known_error, reason} ->
         Logger.error("Failed from bank provider: #{inspect(reason)}")
@@ -95,7 +95,6 @@ defmodule Ecredit.Jobs.StatusTransitionWorker do
     Logger.info("Processing EVALUATING status for #{credit_request.id}")
 
     banking_info = Banking.get_banking_info_by_credit_request(credit_request.id)
-
     if banking_info && banking_info.fetch_status == "COMPLETED" do
       case Countries.evaluate_credit(
              credit_request.country,

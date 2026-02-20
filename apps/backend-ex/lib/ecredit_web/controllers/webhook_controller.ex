@@ -3,7 +3,7 @@ defmodule EcreditWeb.WebhookController do
   Controller for handling webhooks from external providers.
   """
   use EcreditWeb, :controller
-
+  require Logger
   alias Ecredit.Banking
   alias Ecredit.Credits
   alias Ecredit.Countries

@@ -3,7 +3,9 @@ defmodule EcreditWeb.CreditRequestController do
   Controller for credit request operations.
   """
   use EcreditWeb, :controller
+  require Logger
 
+  alias ElixirSense.Log
   alias Ecredit.Credits
   alias Ecredit.Countries
   alias Ecredit.Guardian
@@ -24,6 +26,8 @@ defmodule EcreditWeb.CreditRequestController do
       |> maybe_add_date_filter(:to, params["to"])
       |> maybe_add_integer(:limit, params["limit"], 50, 1, 100)
       |> maybe_add_integer(:offset, params["offset"], 0, 0, nil)
+
+      Logger.error(opts)
 
     %{data: data, total: total, limit: limit, offset: offset} =
       Credits.list_credit_requests(opts)
@@ -267,7 +271,7 @@ defmodule EcreditWeb.CreditRequestController do
     end
   end
 
-  defp maybe_add_integer(opts, _key, nil, default, _min, _max), do: Keyword.put(opts, :limit, default)
+  defp maybe_add_integer(opts, key, nil, default, _min, _max), do: Keyword.put(opts, key, default)
 
   defp maybe_add_integer(opts, key, value, default, min, max) when is_binary(value) do
     case Integer.parse(value) do
@@ -277,6 +281,7 @@ defmodule EcreditWeb.CreditRequestController do
   end
 
   defp maybe_add_integer(opts, key, value, _default, min, max) when is_integer(value) do
+
     clamped =
       value
       |> max(min || value)

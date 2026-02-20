@@ -10,7 +10,9 @@ defmodule EcreditWeb.Endpoint do
 
   socket "/ws", EcreditWeb.UserSocket,
     websocket: [timeout: 45_000],
-    longpoll: false
+    longpoll: false,
+    pubsub_server: Ecredit.PubSub
+
 
 
   plug CORSPlug,

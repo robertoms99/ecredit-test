@@ -3,6 +3,7 @@ defmodule Ecredit.Countries.Mexico do
   Mexico country strategy implementation.
   Handles CURP validation, Mexican credit bureau evaluation, and provider integration.
   """
+  require Logger
   @behaviour Ecredit.Countries.Strategy
 
   # CURP format: 4 letters + 6 digits (YYMMDD) + 1 letter (H/M) + 5 alphanumeric + 1 digit
@@ -43,12 +44,12 @@ defmodule Ecredit.Countries.Mexico do
 
   @impl true
   def evaluate_credit(financial_data, requested_amount, _monthly_income) do
-    credit_info = Map.get(financial_data, "informacion_crediticia", %{})
-    financial_info = Map.get(financial_data, "informacion_financiera", %{})
-    credit_score = Map.get(credit_info, "calificacion_buro", 0)
-    current_debt = Map.get(financial_info, "deuda_mensual_mxn", 0)
-    account_balance = Map.get(financial_info, "saldo_cuenta_mxn", 0)
-    provider_income = Map.get(financial_info, "ingreso_mensual_mxn", 0)
+    credit_info = financial_data["informacion_crediticia"]
+    financial_info = financial_data["informacion_financiera"]
+    credit_score =  credit_info["calificacion_buro"]
+    current_debt = financial_info["deuda_mensual_mxn"]
+    account_balance =financial_info["saldo_cuenta_mxn"]
+    provider_income =financial_info["ingreso_mensual_mxn"]
 
     debt_to_income_ratio =
       if provider_income > 0, do: current_debt / provider_income, else: 1.0
@@ -100,13 +101,13 @@ defmodule Ecredit.Countries.Mexico do
       checks: checks,
       reason: reason,
       recommended_amount: (if approved, do: nil, else: recommended_amount),
-      metadata: {
-        checks,
-        debt_to_income_ratio,
-        current_debt,
-        account_balance,
-        provider_income,
-        requested_amount
+      metadata: %{
+        checks: checks,
+        debt_to_income_ratio: debt_to_income_ratio,
+        current_debt: current_debt,
+        account_balance: account_balance,
+        provider_income: provider_income,
+        requested_amount: requested_amount
       }
     }
   end
@@ -133,7 +134,7 @@ defmodule Ecredit.Countries.Mexico do
       extra_prop_mexico: "xxx"
     }
 
-    Logger.info("Calling mexico bank provider at #{provider_url} for credit request #{payload.credit_request_id}")
+    Logger.info("Calling mexico bank provider at #{provider_url} for credit request #{body.credit_request_id}")
 
     case Req.post(provider_url, json: body, receive_timeout: 30_000) do
       {:ok, %{status: status, body: response_body}} when status in 200..299 ->
@@ -143,7 +144,10 @@ defmodule Ecredit.Countries.Mexico do
 
       {:ok, %{status: status, body: body}} ->
         Logger.error("Bank provider returned error: #{status} - #{inspect(body)}")
-        {:provider_known_error, "Provider returned status #{status}"}
+        if (is_map(body)) do
+          {:provider_known_error, body["error"]}
+        end
+        {:error, "Ocurrio algo inesperado al solicitar informacion al proveedor"}
 
       {:error, reason} ->
         Logger.error("Failed to call bank provider: #{inspect(reason)}")
@@ -164,25 +168,24 @@ defmodule Ecredit.Countries.Mexico do
       end)
 
     if Enum.empty?(missing) do
-      credit_info = payload.informacion_crediticia
-      fin_info = payload.informacion_financiera
+      credit_info = payload["informacion_crediticia"]
+      fin_info = payload["informacion_financiera"]
 
-      if(!is_number(credit_info.calificacion_buro)) do
+      if(!is_number(credit_info["calificacion_buro"])) do
         {:error, "calificacion_buro debe ser un numero"}
       end
 
-      if(!is_number(fin_info.ingreso_mensual_mxn ||fin_info.ingreso_mensual_mxn < 0)) do
+      if(!is_number(fin_info["ingreso_mensual_mxn"] ||fin_info["ingreso_mensual_mxn"] < 0)) do
         {:error, "ingreso_mensual_mxn debe ser un numero y mayor igual a 0"}
       end
 
-      if(!is_number(fin_info.deuda_mensual_mxn || fin_info.deuda_mensual_mxn < 0)) do
+      if(!is_number(fin_info["deuda_mensual_mxn"] || fin_info["deuda_mensual_mxn"] < 0)) do
         {:error, "deuda_mensual_mxn debe ser un numero y mayor igual a 0"}
       end
 
-      if(!is_number(fin_info.saldo_cuenta_mxn )) do
+      if(!is_number(fin_info["saldo_cuenta_mxn"] )) do
         {:error, "saldo_cuenta_mxn debe ser un numero"}
       end
-
       {:ok, payload}
 
     else

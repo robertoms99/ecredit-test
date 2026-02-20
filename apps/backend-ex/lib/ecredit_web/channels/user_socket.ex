@@ -28,6 +28,7 @@ defmodule EcreditWeb.UserSocket do
   end
 
   def connect(_params, _socket, _connect_info) do
+    Logger.info(_params, _connect_info, _socket)
     :error
   end
 
