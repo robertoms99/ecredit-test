@@ -45,272 +45,474 @@ apps/
 
 > **Nota:** Solo uno de los backends (Bun o Elixir) se ejecuta en un momento dado. Comparten la misma base de datos PostgreSQL.
 
-## Desarrollo Local
+---
 
-### Opción 1: Backend de Bun (Default)
+# 🚀 Despliegue Local
 
-#### Requisitos
+## Paso 0: Preparación Inicial
 
-- [Bun](https://bun.sh/docs/installation) >= 1.1.0 (o usar [mise](https://mise.jdx.dev/getting-started.html) para gestionar versiones automáticamente)
-- Docker y Docker Compose
-
-#### 1. Levantar servicios de infraestructura
+### 1. Configurar Variables de Entorno (OBLIGATORIO)
 
 ```bash
-docker compose --env-file .env.docker up -d db redis
+# Copiar plantilla de ejemplo (si no existe)
+cp .env.example .env
+
+# Editar si necesitas cambiar valores (opcional)
+nano .env  # o tu editor favorito
 ```
 
-#### 2. Instalar dependencias
+**Variables por Backend:**
 
-```bash
-bun install
-```
+| Variable | Backend Bun (default) | Backend Elixir |
+|----------|---|---|
+| `VITE_API_URL` | `http://localhost:3000` | `http://localhost:4000` |
+| `API_URL` | `http://localhost:3000` | `http://localhost:4000` |
+| `JWT_SECRET` | ✅ Requerido | ✅ Requerido |
+| `SECRET_KEY_BASE` | ❌ No requerido | ⚠️ **REQUERIDO** |
 
-#### 3. Configurar variables de entorno
-
-```bash
-cp .env.docker.example .env.docker
-```
-
-#### 4. Ejecutar migraciones y seed
-
-```bash
-bun run db:migrate
-bun run db:seed
-```
-
-#### 5. Iniciar aplicaciones
-
-```bash
-# Todos los servicios en paralelo
-bun run dev
-
-# O individualmente
-bun run dev:backend
-bun run dev:frontend
-bun run dev:provider
-```
-
-#### URLs de desarrollo
-
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:5173 |
-| Backend | http://localhost:3000 |
-| Backend Swagger | http://localhost:3000/docs |
-| Provider Sim | http://localhost:3001 |
-| Provider Sim Swagger | http://localhost:3001/docs |
+El `.env` viene preconfigurado para **Backend Bun** (default). Si usarás Elixir, solo cambia `VITE_API_URL` y `API_URL` de `3000` a `4000`.
 
 ---
 
-### Opción 2: Backend de Elixir/Phoenix (Alternativo)
+## Opción 1: Desplegar con Justfile (RECOMENDADO) ⭐
 
-Para usar el backend de Elixir en lugar del de Bun, sigue estos pasos:
+### Instalar Justfile
 
-#### Requisitos
-
-- Elixir >= 1.15 (usar [mise](https://mise.jdx.dev/) o [asdf](https://asdf-vm.com/))
-- PostgreSQL 14+
-- Docker (para PostgreSQL si lo prefieres)
-- Node.js (solo para frontend)
-
-#### 1. Levantar base de datos
+Si no tienes `just` instalado:
 
 ```bash
-# Opción A: Con Docker (recomendado)
-docker compose --env-file .env.docker up -d db
+# macOS (Homebrew)
+brew install just
 
-# Opción B: PostgreSQL local
-# Asegurar que PostgreSQL está corriendo en localhost:5432
+# Linux (apt)
+sudo apt install just
+
+# Otros sistemas
+# Ver: https://github.com/casey/just#installation
 ```
 
-#### 2. Instalar dependencias de Elixir
+O instala `mise` (que incluye Justfile):
+```bash
+curl https://mise.jdx.dev/install.sh | sh
+mise install just
+```
+
+### Desplegar con Bun Backend (Default)
 
 ```bash
-cd apps/backend-ex
-mix deps.get
+just start
 ```
 
-#### 3. Instalar dependencias de Frontend (si no se han instalado)
-
-```bash
-cd apps/frontend
-npm install
-```
-
-#### 4. Crear base de datos y ejecutar migraciones
-
-```bash
-cd apps/backend-ex
-mix ecto.create
-mix ecto.migrate
-mix run priv/repo/seeds.exs
-```
-
-#### 5. Iniciar servicios
-
-En **Terminal 1** - Backend de Elixir:
-
-```bash
-cd apps/backend-ex
-mix phx.server
-
-# El backend estará en http://localhost:4000
-```
-
-En **Terminal 2** - Frontend:
-
-```bash
-cd apps/frontend
-npm run dev
-
-# El frontend estará en http://localhost:5173
-```
-
-En **Terminal 3** (opcional) - Simulador de proveedores:
-
-```bash
-cd apps/provider-sim
-bun dev
-
-# El simulador estará en http://localhost:3001
-```
-
-#### URLs de desarrollo (Elixir)
+**Acceso a servicios:**
 
 | Servicio | URL |
 |----------|-----|
-| Frontend | http://localhost:5173 |
-| Backend Elixir | http://localhost:4000 |
-| Oban UI (jobs) | http://localhost:4000/oban |
-| Provider Sim | http://localhost:3001 |
+| 🌐 Frontend | http://localhost:8080 |
+| 🔌 Backend | http://localhost:3000 |
+| 📄 Backend Docs | http://localhost:3000/docs |
+| 🏦 Provider Sim | http://localhost:3001 |
 
-#### Credenciales de prueba
+### Desplegar con Elixir Backend (Alternativo)
 
-- Email: `admin1@ecredit.com`
-- Password: `admin123456`
+⚠️ **Importante:** Antes de ejecutar, edita `.env` y cambia:
+```bash
+# En .env, cambiar de:
+VITE_API_URL=http://localhost:3000
+API_URL=http://localhost:3000
+
+# A:
+VITE_API_URL=http://localhost:4000
+API_URL=http://localhost:4000
+
+```
+
+Luego ejecuta:
+```bash
+just start-elixir
+```
+
+El comando valida automáticamente la configuración:
+
+```
+🚀 Starting eCredit with Elixir backend...
+
+⚠️  WARNING: VITE_API_URL is not set to Elixir port (4000)
+   Current: http://localhost:3000
+   Expected: http://localhost:4000
+
+   Please edit .env and change:
+   VITE_API_URL=http://localhost:4000
+   API_URL=http://localhost:4000
+
+(No continúa hasta que corrijas .env)
+```
+
+Una vez corregido:
+
+```
+✅ System ready!
+
+📱 Frontend:      http://localhost:5173
+🔌 Backend:       http://localhost:4000
+📊 Oban UI:       http://localhost:4000/oban
+🏦 Provider Sim:  http://localhost:3001
+
+🔐 Credentials:
+   Email: admin1@ecredit.com
+   Pass:  admin123456
+```
+
+### Comandos Útiles
+
+```bash
+just down              # Detener servicios
+just clean             # Detener y limpiar volumes
+just logs backend      # Ver logs del backend
+just logs frontend     # Ver logs del frontend
+just ps                # Ver estado de servicios
+```
 
 ---
 
-### Credenciales de prueba
+## Opción 2: Desplegar con Docker Compose (Sin Justfile)
 
-- Email: `admin1@ecredit.com`
-- Password: `admin123456`
+Si prefieres no usar `just`, puedes usar `docker compose` directamente.
 
-### Usuarios de prueba para solicitudes
+### Bun Backend (Default)
 
-Los siguientes documentos de identidad pueden usarse para crear solicitudes de credito, tanto en desarrollo local como en produccion ([https://ecredit.robertomolina.dev/](https://ecredit.robertomolina.dev/)). Estos usuarios estan predefinidos en el simulador de proveedores bancarios.
+```bash
+# Asegúrate de tener .env configurado
+cp .env.example .env
 
-#### Mexico (MX)
+# Iniciar TODO
+docker compose up -d --build
+
+# Ver servicios
+docker compose ps
+
+# Ver logs
+docker compose logs -f
+
+# Detener
+docker compose down
+```
+
+**Acceso a servicios:**
+
+| Servicio | URL |
+|----------|-----|
+| 🌐 Frontend | http://localhost:8080 |
+| 🔌 Backend | http://localhost:3000 |
+| 🏦 Provider Sim | http://localhost:3001 |
+
+### Elixir Backend (Alternativo)
+
+```bash
+# 1. Editar .env para puerto 4000
+nano .env
+# Cambiar VITE_API_URL=http://localhost:4000
+
+# 2. Iniciar con perfil elixir
+docker compose --profile elixir up -d --build
+
+# 3. Ver servicios
+docker compose --profile elixir ps
+
+# 4. Ver logs
+docker compose --profile elixir logs -f
+
+# 5. Detener
+docker compose --profile elixir down
+```
+
+**Acceso a servicios:**
+
+| Servicio | URL |
+|----------|-----|
+| 🌐 Frontend | http://localhost:8080 |
+| 🔌 Backend Elixir | http://localhost:4000 |
+| 📊 Oban UI | http://localhost:4000/oban |
+| 🏦 Provider Sim | http://localhost:3001 |
+
+---
+
+## 🔐 Credenciales de Prueba
+
+Después de desplegar, accede con:
+
+```
+Email: admin1@ecredit.com
+Password: admin123456
+```
+
+O:
+
+```
+Email: admin2@ecredit.com
+Password: admin123456
+```
+
+---
+
+## 👥 Usuarios de Prueba para Solicitudes
+
+Estos documentos predefinidos están en el simulador de proveedores:
+
+### Mexico (MX)
 
 | CURP | Nombre | Score Buro | Resultado Esperado |
 |------|--------|------------|-------------------|
-| `GOMC860101HDFRRA09` | Good Mexico User | 750 | APROBADO |
-| `BAPC901215MDFRRS03` | Bad Mexico User | 450 | RECHAZADO |
+| `GOMC860101HDFRRA09` | Good Mexico User | 750 | ✅ APROBADO |
+| `BAPC901215MDFRRS03` | Bad Mexico User | 450 | ❌ RECHAZADO |
 
-#### Colombia (CO)
+### Colombia (CO)
 
 | Cedula | Nombre | Score Datacredito | Resultado Esperado |
 |--------|--------|-------------------|-------------------|
-| `1234567890` | Good Colombia User | 680 | APROBADO |
-| `9876543210` | Bad Colombia User | 400 | RECHAZADO |
+| `1234567890` | Good Colombia User | 680 | ✅ APROBADO |
+| `9876543210` | Bad Colombia User | 400 | ❌ RECHAZADO |
 
+---
 
-## Despliegue Local con Docker
+# 🛠️ Cómo Contribuir
 
-### Opción 1: Con Backend de Bun
+## Estructura de Desarrollo
 
-```bash
-# Copiar variables de entorno
-cp .env.docker.example .env.docker
+Este es un **monorepo** con múltiples aplicaciones independientes:
 
-# Levantar todos los servicios
-docker compose --env-file .env.docker up -d --build
+```
+apps/
+├── backend/          # API Bun (Node.js/Bun runtime)
+├── backend-ex/       # API Elixir (Erlang/OTP runtime)
+├── frontend/         # React + Vite (Node.js/Bun runtime)
+└── provider-sim/     # Simulador Bun (Node.js/Bun runtime)
 ```
 
-Esto levanta: PostgreSQL, Redis, Backend (Bun), Frontend y Provider Simulator.
+Cada aplicación tiene su propio `README.md` con documentación específica:
 
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:8080 |
-| Backend | http://localhost:3000 |
-| Provider Sim | http://localhost:3001 |
+- [Backend Bun](apps/backend/README.md)
+- [Backend Elixir](apps/backend-ex/README.md)
+- [Frontend](apps/frontend/README.md)
+- [Provider Simulator](apps/provider-sim/README.md)
 
-### Opción 2: Con Backend de Elixir/Phoenix
+---
 
-> **Nota:** La imagen de Docker para el backend de Elixir aún no está incluida en `docker-compose.yml`. Para desarrollo local, ejecutar Elixir nativamente (ver sección anterior).
+## Flujo de Desarrollo Recomendado
 
-Para agregar soporte en el futuro, se agregaría una entrada en `docker-compose.yml`:
-
-```yaml
-backend-ex:
-  build:
-    context: ./apps/backend-ex
-    dockerfile: Dockerfile
-  ports:
-    - "4000:4000"
-  environment:
-    MIX_ENV: prod
-    DATABASE_URL: ecto://postgres:ecredit123@db:5432/ecredit
-  depends_on:
-    - db
-```
-
-### Verificar estado
+### 1. Clonar y Preparar
 
 ```bash
-docker compose --env-file .env.docker ps
-docker compose --env-file .env.docker logs -f backend
+git clone https://github.com/robertoms99/ecredit-test.git
+cd ecredit-bun
+
+# Configurar variables de entorno
+cp .env.example .env
+
+# Instalar dependencias de la raíz (Bun)
+bun install
 ```
 
-### Detener servicios
+### 2. Elegir Backend y Levantar Infraestructura
+
+#### Opción A: Desarrollo con Backend Bun
 
 ```bash
-docker compose --env-file .env.docker down
+# Levantar DB y Redis
+docker compose up -d db redis
+
+# Ejecutar migraciones
+bun run db:migrate
+
+# Poblar datos de prueba
+bun run db:seed
+
+# Iniciar TODO en paralelo desde la raíz
+bun run dev
 ```
 
-## Scripts Principales
+**Servicios disponibles:**
 
-### Backend de Bun (Default)
+| Servicio | URL | Comando |
+|----------|-----|---------|
+| Frontend | http://localhost:5173 | `bun run dev:frontend` |
+| Backend | http://localhost:3000 | `bun run dev:backend` |
+| Backend Docs | http://localhost:3000/docs | - |
+| Provider Sim | http://localhost:3001 | `bun run dev:provider` |
 
+#### Opción B: Desarrollo con Backend Elixir
+
+Primero, edita `.env`:
 ```bash
-bun run dev              # Desarrollo (todos los servicios)
-bun run build            # Compilar para producción
-bun run db:migrate       # Ejecutar migraciones
-bun run db:seed          # Poblar datos de prueba
-bun run worker           # Iniciar worker de jobs
+VITE_API_URL=http://localhost:4000
+API_URL=http://localhost:4000
 ```
 
-### Backend de Elixir (Alternativo)
+Luego:
 
 ```bash
+# Levantar solo base de datos
+docker compose up -d db
+
+# Instalar dependencias Elixir
 cd apps/backend-ex
+mix deps.get
 
-# Servidor de desarrollo
+# Crear DB y ejecutar migraciones
+mix ecto.create
+mix ecto.migrate
+mix run priv/repo/seeds.exs
+cd ../..
+
+# Terminal 1: Backend Elixir
+cd apps/backend-ex
 mix phx.server
 
-# Base de datos
-mix ecto.create          # Crear base de datos
-mix ecto.migrate         # Ejecutar migraciones
-mix run priv/repo/seeds.exs  # Poblar datos
+# Terminal 2: Frontend
+cd apps/frontend
+bun run dev
 
-# Testing
-mix test                 # Ejecutar todos los tests
-
-# Producción
-MIX_ENV=prod mix ecto.migrate
-MIX_ENV=prod mix release
-PHX_SERVER=true _build/prod/rel/ecredit/bin/ecredit start
+# Terminal 3 (opcional): Provider Sim
+cd apps/provider-sim
+bun run dev
 ```
 
-## Documentación de Aplicaciones
+O más simple desde la raíz:
+```bash
+bun run dev:elixir
+```
+
+**Servicios disponibles:**
+
+| Servicio | URL | Comando |
+|----------|-----|---------|
+| Frontend | http://localhost:5173 | `bun run dev:frontend` |
+| Backend Elixir | http://localhost:4000 | `bun run dev:backend-ex` |
+| Oban UI | http://localhost:4000/oban | - |
+| Provider Sim | http://localhost:3001 | `bun run dev:provider` |
+
+---
+
+## 📝 Scripts Principales desde la Raíz
+
+### Backend Bun
+
+```bash
+bun run dev                # ⭐ Todos los servicios en paralelo
+bun run dev:backend        # Solo backend
+bun run dev:frontend       # Solo frontend
+bun run dev:provider       # Solo proveedor
+bun run build              # Compilar para producción
+bun run db:migrate         # Ejecutar migraciones
+bun run db:seed            # Poblar datos de prueba
+bun run worker             # Iniciar worker de jobs
+```
+
+### Backend Elixir
+
+```bash
+bun run dev:elixir         # ⭐ Backend Elixir + Frontend + Provider
+bun run dev:backend-ex     # Solo backend Elixir
+bun run dev:frontend       # Solo frontend
+bun run dev:provider       # Solo proveedor
+
+# Comandos específicos (dentro de apps/backend-ex)
+cd apps/backend-ex
+mix phx.server             # Iniciar servidor
+mix ecto.create            # Crear base de datos
+mix ecto.migrate           # Ejecutar migraciones
+mix ecto.rollback          # Deshacer migración anterior
+mix run priv/repo/seeds.exs  # Poblar datos
+mix test                   # Ejecutar tests
+```
+
+---
+
+## 🔄 Cambiar Entre Backends
+
+### En Desarrollo Local
+
+Si necesitas probar ambos backends:
+
+```bash
+# Opción 1: Editar .env y reiniciar
+nano .env
+# Cambiar VITE_API_URL entre 3000 (Bun) y 4000 (Elixir)
+
+# Luego reiniciar servicios
+# Ctrl+C para detener actual
+bun run dev         # o bun run dev:elixir
+```
+
+### En Docker Compose
+
+```bash
+# Parar servicios actuales
+docker compose down
+
+# Actualizar .env con las URLs correctas
+nano .env
+
+# Iniciar con el otro backend
+docker compose up -d --build              # Para Bun
+docker compose --profile elixir up -d --build  # Para Elixir
+```
+
+---
+
+## 📚 Documentación de Apps
 
 - [Backend Bun](apps/backend/README.md) - API con Hono, Drizzle y pg-boss
 - [Backend Elixir](apps/backend-ex/README.md) - API con Phoenix, Ecto y Oban
 - [Frontend](apps/frontend/README.md) - SPA React
 - [Provider Simulator](apps/provider-sim/README.md) - Simulador de proveedores bancarios
 
-## Comparación de Backends
+---
+
+## 🧪 Testing
+
+### Backend Bun
+
+```bash
+cd apps/backend
+bun test
+```
+
+### Backend Elixir
+
+```bash
+cd apps/backend-ex
+mix test
+```
+
+### Frontend
+
+```bash
+cd apps/frontend
+bun test
+```
+
+---
+
+## 🐛 Debugging
+
+### Backend Bun (Node Inspector)
+
+```bash
+# Iniciar backend con inspector
+node --inspect apps/backend/src/index.ts
+# Luego abrir: chrome://inspect
+```
+
+### Backend Elixir (IEx)
+
+```bash
+cd apps/backend-ex
+iex -S mix phx.server
+```
+
+---
+
+## 📊 Comparación de Backends
 
 | Característica | Bun | Elixir |
 |---|---|---|
@@ -320,126 +522,43 @@ PHX_SERVER=true _build/prod/rel/ecredit/bin/ecredit start
 | **Jobs** | pg-boss | Oban |
 | **WebSockets** | Socket.IO | Phoenix Channels |
 | **Puerto** | 3000 | 4000 |
-| **Startup** | Muy rápido | Moderado |
-| **Confiabilidad** | Buena | Excelente |
+| **Startup** | ⚡ Muy rápido | Moderado |
+| **Confiabilidad** | ✅ Buena | 🏆 Excelente |
 | **Escalabilidad** | Single-node | Distribuida |
-| **Ecosistema** | JavaScript/TypeScript | Elixir |
-| **Curva aprendizaje** | Baja | Moderada |
+| **Ecosistema** | JavaScript | Elixir |
 
-**Conclusión:** Elige Bun para desarrollo ágil con JavaScript. Elige Elixir para aplicaciones críticas que necesitan máxima confiabilidad y escalabilidad.
+**Recomendación:** Usa Bun para desarrollo ágil. Usa Elixir para aplicaciones críticas que necesitan máxima confiabilidad y escalabilidad.
 
-## Configuración del Frontend según Backend
+---
 
-El frontend se adapta automáticamente según qué backend uses. La clave está en las **variables de entorno**:
+## ❓ FAQ
 
-### Con Backend de Bun (Default)
+### P: ¿Qué debo hacer si Docker no está instalado?
 
-En `apps/frontend/.env.local`:
+R: Tienes dos opciones:
+1. **Instalar Docker** siguiendo https://docs.docker.com/get-docker/
+2. **Usar PostgreSQL local**: Instala PostgreSQL directamente en tu máquina y configura `DATABASE_URL` en `.env`
 
-```bash
-# API REST
-VITE_API_URL=http://localhost:3000
+### P: ¿Puedo cambiar los puertos?
 
-# Tiempo real con Socket.IO
-VITE_REALTIME_PROVIDER=socket.io
-```
+R: Sí, edita `.env` y cambia `BACKEND_PORT`, `FRONTEND_PORT`, etc. Los cambios se reflejarán automáticamente en los mensajes de `just start`.
 
-**Cómo funciona:**
-- REST API: `http://localhost:3000/api/...`
-- WebSocket: `http://localhost:3000/socket.io/` (Socket.IO)
-- Frontend conecta automáticamente a `localhost:3000`
+### P: ¿Qué pasa si ejecuto `bun run dev` y ya hay servicios en los puertos?
 
-### Con Backend de Elixir
+R: Verás un error de puerto en uso. Detén los servicios previos o cambia los puertos en `.env`.
 
-En `apps/frontend/.env.local`:
+### P: ¿Los backends comparten la misma base de datos?
 
-```bash
-# API REST
-VITE_API_URL=http://localhost:4000
+R: Sí, ambos usan la misma PostgreSQL. Los esquemas son idénticos. Puedes cambiar entre ellos sin perder datos.
 
-# Tiempo real con Phoenix Channels
-VITE_REALTIME_PROVIDER=phoenix
-```
+### P: ¿Cómo accedo a Oban UI (Elixir)?
 
-**Cómo funciona:**
-- REST API: `http://localhost:4000/api/...`
-- WebSocket: `ws://localhost:4000/ws` (Phoenix Channels)
-- Frontend conecta automáticamente a `localhost:4000/ws`
+R: Solo disponible con backend Elixir. Una vez ejecutando, visita http://localhost:4000/oban
 
-### Diferencia en Tiempo Real
+---
 
-| Aspecto | Bun (Socket.IO) | Elixir (Phoenix) |
-|---------|-----------------|-----------------|
-| **Librería** | `socket.io-client` | `phoenix` |
-| **Endpoint** | `/socket.io/` | `/ws` |
-| **Canales** | Rooms | Canales nativos |
-| **Autenticación** | Handshake | Parámetro `token` |
-| **Protocolo** | WebSocket + fallback | WebSocket nativo |
-| **Integración** | Agnóstica | Phoenix nativa |
+## 📞 Soporte
 
-Ambos funcionan de igual manera desde la perspectiva del usuario - las actualizaciones llegan en tiempo real.
-
-### Cambiar Rápidamente
-
-Si necesitas probar ambos backends:
-
-```bash
-# Terminal 1: Backend Bun
-bun run dev:backend
-
-# Terminal 2: Frontend con Bun
-cd apps/frontend
-VITE_API_URL=http://localhost:3000 VITE_REALTIME_PROVIDER=socket.io npm run dev
-```
-
-O:
-
-```bash
-# Terminal 1: Backend Elixir
-cd apps/backend-ex
-mix phx.server
-
-# Terminal 2: Frontend con Elixir
-cd apps/frontend
-VITE_API_URL=http://localhost:4000 VITE_REALTIME_PROVIDER=phoenix npm run dev
-```
-
-## Switching entre Backends
-
-### En Desarrollo
-
-El **frontend es agnóstico** respecto a qué backend uses. Solo necesitas cambiar la URL del API.
-
-#### Opción A: Variable de entorno
-
-En `apps/frontend/.env.local`:
-
-```bash
-# Para Bun (default)
-VITE_API_URL=http://localhost:3000
-
-# Para Elixir
-VITE_API_URL=http://localhost:4000
-```
-
-Luego reinicia el servidor:
-
-```bash
-cd apps/frontend
-npm run dev
-```
-
-#### Opción B: En el código
-
-En `apps/frontend/src/api/client.ts` o similar, cambiar la URL base según necesites.
-
-### Base de Datos Compartida
-
-Ambos backends usan la **misma base de datos PostgreSQL** con la misma estructura. Pueden coexistir (aunque solo uno debería correr en un momento dado en producción).
-
-Si cambias de backend:
-
-1. Ambos backends comparten `DATABASE_URL`
-2. No necesitas recrear la base de datos
-3. Los datos se mantienen intactos
-4. Solo asegúrate de ejecutar migraciones pendientes: `mix ecto.migrate` (Elixir) o `bun run db:migrate` (Bun)
+- 📖 Lee la [documentación](docs/)
+- 🐛 Abre un [issue](https://github.com/robertoms99/ecredit-test/issues)
+- 💬 Contacta al equipo

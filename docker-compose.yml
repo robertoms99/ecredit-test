@@ -131,19 +131,18 @@ services:
       context: ./apps/frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://localhost:${BACKEND_PORT}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:${BACKEND_PORT}}
     image: ecredit-frontend:latest
     container_name: ecredit-frontend
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT}:80"
     environment:
-      API_URL: http://localhost:${BACKEND_PORT}
+      API_URL: ${VITE_API_URL:-http://localhost:${BACKEND_PORT}}
     depends_on:
-      backend:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - db
+      - provider-sim
+      - backend
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${FRONTEND_PORT}/"]
       interval: 15s
