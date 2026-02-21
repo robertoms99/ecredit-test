@@ -7,7 +7,7 @@ export class GetCreditRequestUseCase {
     private readonly creditRequestRepository: ICreditRequestRepository
   ) {}
 
-  async execute(id: string): Promise<CreditRequest | null> {
+  async execute({ id, userId}: { id: string;  userId: string}): Promise<CreditRequest | null> {
     const creditRequest = await this.creditRequestRepository.findById(id);
 
     if (!creditRequest) {
@@ -16,6 +16,10 @@ export class GetCreditRequestUseCase {
         `Solicitud de crédito con ID ${id} no encontrada`,
         { id }
       );
+    }
+
+    if (creditRequest.userId !== userId) {
+      throw new AppError("FORBIDDEN", "Solo puedes ver solicitudes de crédito que creaste")
     }
 
     return creditRequest;

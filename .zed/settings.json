@@ -1,0 +1,11 @@
+{
+  "lsp": {
+    "elixir-ls": {
+
+      "settings": {
+
+        "projectDir": "./apps/backend-ex",
+      }
+    }
+  }
+}

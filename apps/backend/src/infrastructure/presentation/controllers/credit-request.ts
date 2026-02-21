@@ -67,17 +67,7 @@ router.get('/:id',
       const { id } = c.req.valid('param');
       const auth = getAuth(c);
 
-      const req = await getCreditRequestUseCase.execute(id);
-
-      if (!req) {
-        return c.json({ error: 'Solicitud de crédito no encontrada' }, 404);
-      }
-
-      if (req.userId !== auth.userId) {
-        return c.json({
-          error: 'Prohibido - Solo puedes ver solicitudes de crédito que creaste'
-        }, 403);
-      }
+      const req = await getCreditRequestUseCase.execute({id,userId: auth.userId});
 
       return c.json(req);
     } catch (error) {
@@ -147,17 +137,7 @@ router.patch('/:id/status',
       const { status, reason } = c.req.valid('json');
       const auth = getAuth(c);
 
-      const existingRequest = await getCreditRequestUseCase.execute(id);
-
-      if (!existingRequest) {
-        return c.json({ error: 'Solicitud de crédito no encontrada' }, 404);
-      }
-
-      if (existingRequest.userId !== auth.userId) {
-        return c.json({
-          error: 'Prohibido - Solo puedes actualizar solicitudes de crédito que creaste'
-        }, 403);
-      }
+      const _existingRequest = await getCreditRequestUseCase.execute({id,userId: auth.userId});
 
       const updated = await updateCreditRequestStatusUseCase.execute({
         creditRequestId: id,

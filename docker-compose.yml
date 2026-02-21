@@ -92,6 +92,40 @@ services:
     networks:
       - ecredit-network
 
+  backend-ex:
+    build:
+      context: ./apps/backend-ex
+      dockerfile: Dockerfile
+    image: ecredit-backend-ex:latest
+    container_name: ecredit-backend-ex
+    restart: unless-stopped
+    profiles:
+      - elixir
+    ports:
+      - "${BACKEND_EX_PORT:-4000}:4000"
+    environment:
+      DATABASE_URL: ecto://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-change-this-secret-in-production-must-be-at-least-64-bytes}
+      FRONTEND_URL: http://localhost:${FRONTEND_PORT}
+      PROVIDER_SIM_URL: http://provider-sim:${PROVIDER_PORT}
+      PHX_HOST: localhost
+      PHX_SERVER: "true"
+      PORT: 4000
+    depends_on:
+      db:
+        condition: service_healthy
+      provider-sim:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - ecredit-network
+
   frontend:
     build:
       context: ./apps/frontend
