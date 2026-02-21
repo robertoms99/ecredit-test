@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { creditRequestsApi } from '../api/creditRequests';
 import { CreditRequest, CreditRequestUpdateEvent, CreateCreditRequestPayload, RequestStatus } from '../types';
 import { useCreditRequestUpdates } from '../hooks/useSocket';
+import { useDebounce } from '../hooks/useDebounce';
 import { CreditRequestCard } from './CreditRequestCard';
 import { CountryFilter } from './CountryFilter';
 import { AdvancedFilters } from './AdvancedFilters';
@@ -25,6 +26,8 @@ export function Dashboard() {
   const [dateTo, setDateTo] = useState<string>('');
   const [searchId, setSearchId] = useState<string>('');
   const [searchDocumentId, setSearchDocumentId] = useState<string>('');
+  const debouncedSearchId = useDebounce(searchId, 400);
+  const debouncedSearchDocumentId = useDebounce(searchDocumentId, 400);
   const [statuses, setStatuses] = useState<RequestStatus[]>([]);
   const [total, setTotal] = useState(0);
   const [updatedIds, setUpdatedIds] = useState<Set<string>>(new Set());
@@ -48,9 +51,9 @@ export function Dashboard() {
       setLoading(true);
       
       // If searching by ID, use getById endpoint
-      if (searchId.trim()) {
+      if (debouncedSearchId.trim()) {
         try {
-          const request = await creditRequestsApi.getById(searchId.trim());
+          const request = await creditRequestsApi.getById(debouncedSearchId.trim());
           setRequests([request]);
           setTotal(1);
         } catch (err) {
@@ -68,9 +71,9 @@ export function Dashboard() {
       const response = await creditRequestsApi.list({
         country: selectedCountry || undefined,
         status: selectedStatus || undefined,
-        documentId: searchDocumentId || undefined,
-        from: dateFrom ? new Date(dateFrom).toISOString() : undefined,
-        to: dateTo ? new Date(dateTo + 'T23:59:59').toISOString() : undefined,
+        documentId: debouncedSearchDocumentId || undefined,
+        from: dateFrom ? new Date(dateFrom + 'T00:00:00').toISOString() : undefined,
+        to: dateTo ? new Date(dateTo + 'T23:59:59.999').toISOString() : undefined,
         limit: 100,
       });
       setRequests(response.data);
@@ -82,7 +85,7 @@ export function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCountry, selectedStatus, dateFrom, dateTo, searchId, searchDocumentId, showError]);
+  }, [selectedCountry, selectedStatus, dateFrom, dateTo, debouncedSearchId, debouncedSearchDocumentId, showError]);
 
   useEffect(() => {
     loadRequests();
