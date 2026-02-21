@@ -42,7 +42,13 @@ defmodule Ecredit.Banking.BankingInfo do
   """
   def update_changeset(banking_info, attrs) do
     banking_info
-    |> cast(attrs, [:financial_data, :fetch_status, :provider_response_at, :error_message, :retry_count])
+    |> cast(attrs, [
+      :financial_data,
+      :fetch_status,
+      :provider_response_at,
+      :error_message,
+      :retry_count
+    ])
     |> validate_inclusion(:fetch_status, @fetch_statuses)
   end
 

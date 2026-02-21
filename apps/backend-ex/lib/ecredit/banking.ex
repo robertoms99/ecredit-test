@@ -30,7 +30,7 @@ defmodule Ecredit.Banking do
   def get_banking_info_by_external_id(external_request_id) do
     BankingInfo
     |> where([bi], bi.external_request_id == ^external_request_id)
-    |> preload(credit_request: [:status] )
+    |> preload(credit_request: [:status])
     |> Repo.one()
   end
 

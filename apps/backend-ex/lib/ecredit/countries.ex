@@ -46,7 +46,7 @@ defmodule Ecredit.Countries do
   """
   def validate_document_id(country_code, document_id) do
     case get_strategy(country_code) do
-      nil -> {:error, "Unsupported country: #{country_code}"}
+      nil -> {:error, "Pais no soportado: #{country_code}"}
       strategy -> strategy.validate_document_id(document_id)
     end
   end
@@ -56,8 +56,11 @@ defmodule Ecredit.Countries do
   """
   def evaluate_credit(country_code, financial_data, requested_amount, monthly_income) do
     case get_strategy(country_code) do
-      nil -> {:error, "Unsupported country: #{country_code}"}
-      strategy -> {:ok, strategy.evaluate_credit(financial_data, requested_amount, monthly_income)}
+      nil ->
+        {:error, "Pais no soportado: #{country_code}"}
+
+      strategy ->
+        {:ok, strategy.evaluate_credit(financial_data, requested_amount, monthly_income)}
     end
   end
 
@@ -66,7 +69,7 @@ defmodule Ecredit.Countries do
   """
   def provider_endpoint(country_code) do
     case get_strategy(country_code) do
-      nil -> {:error, "Unsupported country: #{country_code}"}
+      nil -> {:error, "Pais no soportado: #{country_code}"}
       strategy -> {:ok, strategy.provider_endpoint()}
     end
   end
@@ -76,7 +79,7 @@ defmodule Ecredit.Countries do
   """
   def request_bank_data(country_code, payload) do
     case get_strategy(country_code) do
-      nil -> {:error, "Unsupported country: #{country_code}"}
+      nil -> {:error, "Pais no soportado: #{country_code}"}
       strategy -> strategy.request_bank_data(payload)
     end
   end
@@ -86,7 +89,7 @@ defmodule Ecredit.Countries do
   """
   def validate_provider_payload(country_code, payload) do
     case get_strategy(country_code) do
-      nil -> {:error, "Unsupported country: #{country_code}"}
+      nil -> {:error, "Pais no soportado: #{country_code}"}
       strategy -> strategy.validate_provider_payload(payload)
     end
   end

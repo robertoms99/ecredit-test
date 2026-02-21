@@ -13,11 +13,9 @@ defmodule EcreditWeb.Endpoint do
     longpoll: false,
     pubsub_server: Ecredit.PubSub
 
-
-
   plug CORSPlug,
     origin: &__MODULE__.cors_origin/0,
-    methods: ["GET","POST","PUT","PATCH", "DELETE","OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     headers: ["Authorization", "Content-Type"],
     expose: ["Authorization"],
     max_age: 86400

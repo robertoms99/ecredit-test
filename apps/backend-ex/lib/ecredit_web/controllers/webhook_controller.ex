@@ -17,7 +17,10 @@ defmodule EcreditWeb.WebhookController do
       nil ->
         conn
         |> put_status(:not_found)
-        |> json(%{code: "NOT_FOUND", message: "No pending request found for correlation_id"})
+        |> json(%{
+          code: "NOT_FOUND",
+          message: "No se encontró solicitud pendiente para el correlation_id"
+        })
 
       banking_info ->
         credit_request = banking_info.credit_request
@@ -28,8 +31,15 @@ defmodule EcreditWeb.WebhookController do
         case Countries.validate_provider_payload(country, payload) do
           {:ok, validated_payload} ->
             {:ok, _updated} = Banking.complete_banking_info(banking_info, validated_payload)
+
             {:ok, _updated_request} =
-              Credits.update_credit_request_status(credit_request, "EVALUATING", "webhook", "Bank data received")
+              Credits.update_credit_request_status(
+                credit_request,
+                "EVALUATING",
+                "webhook",
+                "Transición automática: Datos bancarios recibidos del proveedor"
+              )
+
             conn
             |> put_status(:ok)
             |> json(%{status: "ok", message: "Datos bancarios recibidos y procesándose"})

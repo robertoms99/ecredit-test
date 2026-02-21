@@ -29,7 +29,14 @@ defmodule Ecredit.Credits.StatusTransition do
   """
   def changeset(transition, attrs) do
     transition
-    |> cast(attrs, [:reason, :triggered_by, :metadata, :credit_request_id, :from_status_id, :to_status_id])
+    |> cast(attrs, [
+      :reason,
+      :triggered_by,
+      :metadata,
+      :credit_request_id,
+      :from_status_id,
+      :to_status_id
+    ])
     |> validate_required([:triggered_by, :credit_request_id, :to_status_id])
     |> validate_inclusion(:triggered_by, @triggered_by_values)
     |> validate_length(:reason, max: 1000)

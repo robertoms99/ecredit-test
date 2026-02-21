@@ -12,7 +12,6 @@ if colombia_provider_url = System.get_env("COLOMBIA_PROVIDER_URL") do
   config :ecredit, :colombia_provider_url, colombia_provider_url
 end
 
-
 if frontend_url = System.get_env("FRONTEND_URL") do
   config :ecredit, :frontend_url, frontend_url
 end

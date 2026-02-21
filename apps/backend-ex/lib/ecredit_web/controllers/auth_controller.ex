@@ -54,10 +54,12 @@ defmodule EcreditWeb.AuthController do
     conn
     |> put_status(:ok)
     |> json(%{
-      id: user.id,
-      email: user.email,
-      fullName: user.full_name,
-      role: user.role
+      user: %{
+        id: user.id,
+        email: user.email,
+        fullName: user.full_name,
+        role: user.role
+      }
     })
   end
 end

@@ -7,13 +7,13 @@ defmodule EcreditWeb.FallbackController do
   def call(conn, {:error, :not_found}) do
     conn
     |> put_status(:not_found)
-    |> json(%{code: "NOT_FOUND", message: "Resource not found"})
+    |> json(%{code: "NOT_FOUND", message: "Recurso no encontrado"})
   end
 
   def call(conn, {:error, :unauthorized}) do
     conn
     |> put_status(:unauthorized)
-    |> json(%{code: "AUTH_REQUIRED", message: "Authentication required"})
+    |> json(%{code: "AUTH_REQUIRED", message: "Autenticación requerida"})
   end
 
   def call(conn, {:error, %Ecto.Changeset{} = changeset}) do
@@ -26,7 +26,7 @@ defmodule EcreditWeb.FallbackController do
 
     conn
     |> put_status(:unprocessable_entity)
-    |> json(%{code: "VALIDATION_FAILED", message: "Validation failed", details: errors})
+    |> json(%{code: "VALIDATION_FAILED", message: "Validación fallida", details: errors})
   end
 
   def call(conn, {:error, message}) when is_binary(message) do

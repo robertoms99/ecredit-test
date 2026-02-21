@@ -32,6 +32,4 @@ defmodule EcreditWeb.Router do
 
     get "/health", EcreditWeb.HealthController, :index
   end
-
-
 end

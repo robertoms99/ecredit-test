@@ -12,16 +12,16 @@ defmodule EcreditWeb.Plugs.AuthErrorHandler do
     {status, code, message} =
       case type do
         :unauthenticated ->
-          {401, "AUTH_REQUIRED", "Authentication required"}
+          {401, "AUTH_REQUIRED", "Autenticación requerida"}
 
         :invalid_token ->
-          {401, "AUTH_FAILED", "Invalid or expired token"}
+          {401, "AUTH_FAILED", "Token inválido o expirado"}
 
         :no_resource_found ->
-          {401, "AUTH_FAILED", "User not found"}
+          {401, "AUTH_FAILED", "Usuario no encontrado"}
 
         _ ->
-          {401, "AUTH_FAILED", "Authentication failed"}
+          {401, "AUTH_FAILED", "Error de autenticación"}
       end
 
     conn

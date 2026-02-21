@@ -5,6 +5,7 @@ defmodule EcreditWeb.UserSocket do
   """
   use Phoenix.Socket
 
+  require Logger
   alias Ecredit.Guardian
 
   # Channels
@@ -28,7 +29,7 @@ defmodule EcreditWeb.UserSocket do
   end
 
   def connect(_params, _socket, _connect_info) do
-    Logger.info(_params, _connect_info, _socket)
+    Logger.warning("Intento de conexión WebSocket sin token, rechazando")
     :error
   end
 

@@ -5,7 +5,6 @@ defmodule EcreditWeb.CreditRequestController do
   use EcreditWeb, :controller
   require Logger
 
-  alias ElixirSense.Log
   alias Ecredit.Credits
   alias Ecredit.Countries
   alias Ecredit.Guardian
@@ -17,8 +16,11 @@ defmodule EcreditWeb.CreditRequestController do
   Lists credit requests with optional filters.
   """
   def index(conn, params) do
+    user = Guardian.Plug.current_resource(conn)
+
     opts =
       []
+      |> maybe_add_filter(:user_id, user.id)
       |> maybe_add_filter(:country, params["country"])
       |> maybe_add_filter(:status_id, params["status"])
       |> maybe_add_filter(:document_id, params["documentId"])
@@ -26,8 +28,6 @@ defmodule EcreditWeb.CreditRequestController do
       |> maybe_add_date_filter(:to, params["to"])
       |> maybe_add_integer(:limit, params["limit"], 50, 1, 100)
       |> maybe_add_integer(:offset, params["offset"], 0, 0, nil)
-
-      Logger.error(opts)
 
     %{data: data, total: total, limit: limit, offset: offset} =
       Credits.list_credit_requests(opts)
@@ -51,14 +51,18 @@ defmodule EcreditWeb.CreditRequestController do
       nil ->
         conn
         |> put_status(:not_found)
-        |> json(%{code: "NOT_FOUND", message: "Credit request not found"})
+        |> json(%{code: "NOT_FOUND", message: "Solicitud de crédito no encontrada"})
 
       credit_request ->
         if(credit_request.user.id !== user_auth.id) do
           conn
           |> put_status(:forbidden)
-          |> json(%{code: "FORBIDDEN", message: "Solo puedes ver solicitudes de crédito que creaste"})
+          |> json(%{
+            code: "FORBIDDEN",
+            message: "Solo puedes ver solicitudes de crédito que creaste"
+          })
         end
+
         json(conn, serialize_credit_request(credit_request))
     end
   end
@@ -94,7 +98,7 @@ defmodule EcreditWeb.CreditRequestController do
           |> put_status(:bad_request)
           |> json(%{
             code: "VALIDATION_FAILED",
-            message: "Invalid credit request",
+            message: "Solicitud de crédito inválida",
             details: format_changeset_errors(changeset)
           })
       end
@@ -118,14 +122,16 @@ defmodule EcreditWeb.CreditRequestController do
       nil ->
         conn
         |> put_status(:not_found)
-        |> json(%{code: "NOT_FOUND", message: "Credit request not found"})
+        |> json(%{code: "NOT_FOUND", message: "Solicitud de crédito no encontrada"})
 
       credit_request ->
-
         if(credit_request.user.id !== user_auth.id) do
           conn
           |> put_status(:forbidden)
-          |> json(%{code: "FORBIDDEN", message: "Solo puedes actualizar solicitudes de crédito que creaste"})
+          |> json(%{
+            code: "FORBIDDEN",
+            message: "Solo puedes actualizar solicitudes de crédito que creaste"
+          })
         end
 
         case Credits.update_credit_request_status(credit_request, status_code, "user", reason) do
@@ -137,18 +143,18 @@ defmodule EcreditWeb.CreditRequestController do
             |> put_status(:conflict)
             |> json(%{
               code: "INVALID_STATUS_TRANSITION",
-              message: "Cannot transition from a final status"
+              message: "No se puede cambiar el estado desde un estado final"
             })
 
           {:error, :status_not_found} ->
             conn
             |> put_status(:bad_request)
-            |> json(%{code: "VALIDATION_FAILED", message: "Invalid status code"})
+            |> json(%{code: "VALIDATION_FAILED", message: "Código de estado inválido"})
 
           {:error, _changeset} ->
             conn
             |> put_status(:bad_request)
-            |> json(%{code: "VALIDATION_FAILED", message: "Failed to update status"})
+            |> json(%{code: "VALIDATION_FAILED", message: "Error al actualizar el estado"})
         end
     end
   end
@@ -156,7 +162,7 @@ defmodule EcreditWeb.CreditRequestController do
   def update_status(conn, _params) do
     conn
     |> put_status(:bad_request)
-    |> json(%{code: "VALIDATION_FAILED", message: "Status code is required"})
+    |> json(%{code: "VALIDATION_FAILED", message: "El código de estado es requerido"})
   end
 
   @doc """
@@ -170,13 +176,16 @@ defmodule EcreditWeb.CreditRequestController do
       nil ->
         conn
         |> put_status(:not_found)
-        |> json(%{code: "NOT_FOUND", message: "Credit request not found"})
+        |> json(%{code: "NOT_FOUND", message: "Solicitud de crédito no encontrada"})
 
       credit_request ->
         if(credit_request.user.id !== user_auth.id) do
           conn
           |> put_status(:forbidden)
-          |> json(%{code: "FORBIDDEN", message: "Solo puedes historial de solicitudes que creaste"})
+          |> json(%{
+            code: "FORBIDDEN",
+            message: "Solo puedes ver el historial de solicitudes que creaste"
+          })
         end
 
         transitions = Credits.get_transition_history(id)
@@ -185,7 +194,10 @@ defmodule EcreditWeb.CreditRequestController do
           Enum.map(transitions, fn t ->
             %{
               id: t.id,
-              fromStatus: if(t.from_status, do: %{id: t.from_status.id, code: t.from_status.code, name: t.from_status.name}),
+              fromStatus:
+                if(t.from_status,
+                  do: %{id: t.from_status.id, code: t.from_status.code, name: t.from_status.name}
+                ),
               toStatus: %{id: t.to_status.id, code: t.to_status.code, name: t.to_status.name},
               reason: t.reason,
               triggeredBy: t.triggered_by,
@@ -223,39 +235,49 @@ defmodule EcreditWeb.CreditRequestController do
     }
   end
 
-  defp validate_country(nil), do: {:error, "Country is required"}
+  defp validate_country(nil), do: {:error, "El país es requerido"}
 
   defp validate_country(country) do
     if Countries.supported?(country) do
       {:ok, String.upcase(country)}
     else
-      {:error, "Unsupported country: #{country}"}
+      {:error, "País no soportado: #{country}"}
     end
   end
 
-  defp validate_name(nil), do: {:error, "Full name is required"}
-  defp validate_name(name) when byte_size(name) < 2, do: {:error, "Name must be at least 2 characters"}
-  defp validate_name(name) when byte_size(name) > 100, do: {:error, "Name must be at most 100 characters"}
+  defp validate_name(nil), do: {:error, "El nombre completo es requerido"}
+
+  defp validate_name(name) when byte_size(name) < 2,
+    do: {:error, "El nombre debe tener al menos 2 caracteres"}
+
+  defp validate_name(name) when byte_size(name) > 100,
+    do: {:error, "El nombre debe tener máximo 100 caracteres"}
+
   defp validate_name(_name), do: {:ok, :valid}
 
-  defp validate_amount(nil, _), do: {:error, "Requested amount is required"}
+  defp validate_amount(nil, _), do: {:error, "El monto solicitado es requerido"}
 
   defp validate_amount(amount, country) when is_number(amount) do
     strategy = Countries.get_strategy(country)
     config = strategy.get_config()
 
     cond do
-      amount <= 0 -> {:error, "Requested amount must be positive"}
-      amount > config.amount_limit -> {:error, "Amount exceeds limit of #{config.amount_limit} #{config.currency}"}
-      true -> {:ok, amount}
+      amount <= 0 ->
+        {:error, "El monto solicitado debe ser positivo"}
+
+      amount > config.amount_limit ->
+        {:error, "El monto excede el límite de #{config.amount_limit} #{config.currency}"}
+
+      true ->
+        {:ok, amount}
     end
   end
 
-  defp validate_amount(_, _), do: {:error, "Requested amount must be a number"}
+  defp validate_amount(_, _), do: {:error, "El monto solicitado debe ser un número"}
 
-  defp validate_income(nil), do: {:error, "Monthly income is required"}
+  defp validate_income(nil), do: {:error, "El ingreso mensual es requerido"}
   defp validate_income(income) when is_number(income) and income > 0, do: {:ok, income}
-  defp validate_income(_), do: {:error, "Monthly income must be a positive number"}
+  defp validate_income(_), do: {:error, "El ingreso mensual debe ser un número positivo"}
 
   defp maybe_add_filter(opts, _key, nil), do: opts
   defp maybe_add_filter(opts, _key, ""), do: opts
@@ -281,7 +303,6 @@ defmodule EcreditWeb.CreditRequestController do
   end
 
   defp maybe_add_integer(opts, key, value, _default, min, max) when is_integer(value) do
-
     clamped =
       value
       |> max(min || value)

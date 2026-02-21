@@ -53,11 +53,13 @@ defmodule Ecredit.Credits do
       |> order_by([cr], desc: cr.requested_at)
       |> maybe_filter_country(opts[:country])
       |> maybe_filter_status(opts[:status_id])
+      |> maybe_filter_user_id(opts[:user_id])
       |> maybe_filter_document_id(opts[:document_id])
       |> maybe_filter_from(opts[:from])
       |> maybe_filter_to(opts[:to])
 
     total = Repo.aggregate(query, :count)
+
     data =
       query
       |> limit(^limit)
@@ -73,6 +75,9 @@ defmodule Ecredit.Credits do
 
   defp maybe_filter_status(query, nil), do: query
   defp maybe_filter_status(query, status_id), do: where(query, [cr], cr.status_id == ^status_id)
+
+  defp maybe_filter_user_id(query, nil), do: query
+  defp maybe_filter_user_id(query, user_id), do: where(query, [cr], cr.user_id == ^user_id)
 
   defp maybe_filter_document_id(query, nil), do: query
 
@@ -104,7 +109,7 @@ defmodule Ecredit.Credits do
         |> case do
           {:ok, credit_request} ->
             credit_request = Repo.preload(credit_request, [:status, :user])
-            log_transition(credit_request.id, nil, status.id, "system", "Credit request created")
+            log_transition(credit_request.id, nil, status.id, "user", "Solicitud creada")
             {:ok, credit_request}
 
           {:error, changeset} ->
@@ -116,7 +121,13 @@ defmodule Ecredit.Credits do
   @doc """
   Updates the status of a credit request.
   """
-  def update_credit_request_status(credit_request, new_status_code, triggered_by, reason \\ nil) do
+  def update_credit_request_status(
+        credit_request,
+        new_status_code,
+        triggered_by,
+        reason \\ nil,
+        metadata \\ %{}
+      ) do
     current_status = credit_request.status
 
     if RequestStatus.final?(current_status.code) do
@@ -133,7 +144,16 @@ defmodule Ecredit.Credits do
           |> case do
             {:ok, updated} ->
               updated = Repo.preload(updated, [:status, :user], force: true)
-              log_transition(updated.id, current_status.id, new_status.id, triggered_by, reason)
+
+              log_transition(
+                updated.id,
+                current_status.id,
+                new_status.id,
+                triggered_by,
+                reason,
+                metadata
+              )
+
               {:ok, updated}
 
             {:error, changeset} ->
@@ -177,7 +197,14 @@ defmodule Ecredit.Credits do
   @doc """
   Logs a status transition.
   """
-  def log_transition(credit_request_id, from_status_id, to_status_id, triggered_by, reason \\ nil, metadata \\ %{}) do
+  def log_transition(
+        credit_request_id,
+        from_status_id,
+        to_status_id,
+        triggered_by,
+        reason \\ nil,
+        metadata \\ %{}
+      ) do
     %StatusTransition{}
     |> StatusTransition.changeset(%{
       credit_request_id: credit_request_id,
@@ -196,7 +223,7 @@ defmodule Ecredit.Credits do
   def get_transition_history(credit_request_id) do
     StatusTransition
     |> where([t], t.credit_request_id == ^credit_request_id)
-    |> order_by([t], asc: t.created_at)
+    |> order_by([t], desc: t.created_at)
     |> preload([:from_status, :to_status])
     |> Repo.all()
   end

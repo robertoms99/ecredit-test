@@ -54,34 +54,43 @@ defmodule Ecredit.Countries.Colombia do
   @impl true
   def evaluate_credit(financial_data, requested_amount, monthly_income) do
     datacredito = financial_data["datacredito"]
-    fin_info    = financial_data["datos_financieros"]
+    fin_info = financial_data["datos_financieros"]
 
-    credit_score    = datacredito["score"] || 0
-    obligations     = fin_info["obligaciones_mensuales"] || 0
+    credit_score = datacredito["score"] || 0
+    obligations = fin_info["obligaciones_mensuales"] || 0
     account_balance = fin_info["balance_cuentas"] || 0
     provider_income = fin_info["ingresos_mensuales"] || monthly_income || 0
 
     debt_to_income_ratio =
-      if provider_income > 0, do: obligations / provider_income, else: 1.0
+      if provider_income > 0, do: obligations / provider_income, else: :infinity
 
     risk_level = calculate_risk_level(credit_score, debt_to_income_ratio)
 
     checks = %{
-      credit_score_ok:     credit_score >= @config.min_credit_score,
-      debt_to_income_ok:   dti_within_limit?(debt_to_income_ratio, @config.max_debt_to_income_ratio),
+      credit_score_ok: credit_score >= @config.min_credit_score,
+      debt_to_income_ok:
+        dti_within_limit?(debt_to_income_ratio, @config.max_debt_to_income_ratio),
       amount_within_limit: requested_amount <= @config.amount_limit,
-      sufficient_income:   provider_income >= requested_amount * 0.12,
+      sufficient_income: provider_income >= requested_amount * 0.12,
       balance_not_critical: account_balance >= -50_000
     }
 
     all_checks_pass = Enum.all?(Map.values(checks))
     approved = all_checks_pass and risk_level != "HIGH"
 
-    reason = build_reason(approved, risk_level, checks, credit_score, debt_to_income_ratio, requested_amount)
+    reason =
+      build_reason(
+        approved,
+        risk_level,
+        checks,
+        credit_score,
+        debt_to_income_ratio,
+        requested_amount
+      )
 
     recommended_amount =
       if not approved and provider_income > 0 do
-        max_by_dti    = (provider_income * 0.35 - obligations) * 12
+        max_by_dti = (provider_income * 0.35 - obligations) * 12
         max_by_income = provider_income * 8.33
         max(0, Float.floor(min(min(max_by_dti, max_by_income), @config.amount_limit)))
       else
@@ -93,14 +102,14 @@ defmodule Ecredit.Countries.Colombia do
       risk_level: risk_level,
       checks: checks,
       reason: reason,
-      recommended_amount: (if approved, do: nil, else: recommended_amount),
+      recommended_amount: if(approved, do: nil, else: recommended_amount),
       metadata: %{
         checks: checks,
-        debt_to_income_ratio: dti_to_float(debt_to_income_ratio),
-        current_debt: obligations,
-        balance: account_balance,
-        provider_income: provider_income,
-        requested_amount: requested_amount
+        debtToIncomeRatio: dti_to_float(debt_to_income_ratio),
+        currentDebt: obligations,
+        accountBalance: account_balance,
+        monthlyIncome: provider_income,
+        requestedAmount: requested_amount
       }
     }
   end
@@ -113,46 +122,74 @@ defmodule Ecredit.Countries.Colombia do
     provider_url = provider_endpoint()
 
     body = %{
-      document_id:          payload.credit_request.document_id,
-      credit_request_id:    payload.credit_request.id,
-      callback_url:         payload.callback_url,
-      extra_prop_colombia:  "xxx"
+      document_id: payload.credit_request.document_id,
+      credit_request_id: payload.credit_request.id,
+      callback_url: payload.callback_url
     }
 
-    Logger.info("Calling colombia bank provider at #{provider_url} for credit request #{body.credit_request_id}")
+    Logger.info(
+      "Llamando al proveedor bancario de Colombia en #{provider_url} para la solicitud #{body.credit_request_id}"
+    )
 
     case Req.post(provider_url, json: body, receive_timeout: 30_000) do
       {:ok, %{status: status, body: response_body}} when status in 200..299 ->
         correlation_id = get_correlation_id(response_body)
-        Logger.info("Bank provider accepted request, correlation_id: #{correlation_id}")
-        {:ok, %{external_request_id: correlation_id, provider_name: get_config().provider_name, fetch_status: "PENDING"}}
+        Logger.info("Proveedor bancario aceptó la solicitud, correlation_id: #{correlation_id}")
+
+        {:ok,
+         %{
+           external_request_id: correlation_id,
+           provider_name: get_config().provider_name,
+           fetch_status: "PENDING"
+         }}
 
       {:ok, %{status: status, body: body}} ->
-        Logger.error("Bank provider returned error: #{status} - #{inspect(body)}")
+        Logger.error("El proveedor bancario devolvió un error: #{status} - #{inspect(body)}")
+
         if is_map(body) and body["error"] do
           {:provider_known_error, body["error"]}
         else
-          {:error, "Ocurrio algo inesperado al solicitar informacion al proveedor"}
+          {:error, "Ocurrió algo inesperado al solicitar información al proveedor"}
         end
 
       {:error, reason} ->
-        Logger.error("Failed to call bank provider: #{inspect(reason)}")
-        {:error, "Connection failed: #{inspect(reason)}"}
+        Logger.error("Fallo al llamar al proveedor bancario: #{inspect(reason)}")
+        {:error, "Fallo de conexión: #{inspect(reason)}"}
     end
   end
 
   @impl true
   def validate_provider_payload(payload) do
-    with :ok <- require_object_field(payload, "datacredito", "Falta datacredito en el payload del proveedor de Colombia"),
-         :ok <- require_object_field(payload, "datos_financieros", "Falta datos_financieros en el payload del proveedor de Colombia") do
-
+    with :ok <-
+           require_object_field(
+             payload,
+             "datacredito",
+             "Falta datacredito en el payload del proveedor de Colombia"
+           ),
+         :ok <-
+           require_object_field(
+             payload,
+             "datos_financieros",
+             "Falta datos_financieros en el payload del proveedor de Colombia"
+           ) do
       datacredito = payload["datacredito"]
-      fin_info    = payload["datos_financieros"]
+      fin_info = payload["datos_financieros"]
 
       with :ok <- require_number(datacredito, "score", "datacredito.score debe ser un número"),
-           :ok <- require_non_negative_number(fin_info, "ingresos_mensuales", "ingresos_mensuales debe ser un número no negativo"),
-           :ok <- require_non_negative_number(fin_info, "obligaciones_mensuales", "obligaciones_mensuales debe ser un número no negativo"),
-           :ok <- require_number(fin_info, "balance_cuentas", "balance_cuentas debe ser un número") do
+           :ok <-
+             require_non_negative_number(
+               fin_info,
+               "ingresos_mensuales",
+               "ingresos_mensuales debe ser un número no negativo"
+             ),
+           :ok <-
+             require_non_negative_number(
+               fin_info,
+               "obligaciones_mensuales",
+               "obligaciones_mensuales debe ser un número no negativo"
+             ),
+           :ok <-
+             require_number(fin_info, "balance_cuentas", "balance_cuentas debe ser un número") do
         {:ok, payload}
       end
     end
@@ -164,7 +201,7 @@ defmodule Ecredit.Countries.Colombia do
     cond do
       credit_score >= 700 and debt_to_income_ratio < 0.35 -> "LOW"
       credit_score >= 550 and debt_to_income_ratio < 0.45 -> "MEDIUM"
-      true                                                  -> "HIGH"
+      true -> "HIGH"
     end
   end
 
@@ -174,26 +211,53 @@ defmodule Ecredit.Countries.Colombia do
   defp dti_to_float(:infinity), do: nil
   defp dti_to_float(dti), do: Float.round(dti * 100, 2)
 
-  defp build_reason(true, risk_level, _checks, credit_score, debt_to_income_ratio, _requested_amount) do
+  defp build_reason(
+         true,
+         risk_level,
+         _checks,
+         credit_score,
+         debt_to_income_ratio,
+         _requested_amount
+       ) do
     dti_pct = dti_to_display(debt_to_income_ratio)
+
     "Crédito aprobado. Nivel de riesgo: #{risk_level}, Puntaje crediticio: #{credit_score}, Ratio deuda/ingreso: #{dti_pct}%"
   end
 
-  defp build_reason(false, risk_level, checks, credit_score, debt_to_income_ratio, requested_amount) do
+  defp build_reason(
+         false,
+         risk_level,
+         checks,
+         credit_score,
+         debt_to_income_ratio,
+         requested_amount
+       ) do
     reasons =
       []
-      |> maybe_add(not checks.credit_score_ok,
-           "puntaje crediticio muy bajo (#{credit_score} < #{@config.min_credit_score})")
-      |> maybe_add(not checks.debt_to_income_ok,
-           "ratio deuda/ingreso muy alto (#{dti_to_display(debt_to_income_ratio)}% > #{round(@config.max_debt_to_income_ratio * 100)}%)")
-      |> maybe_add(not checks.amount_within_limit,
-           "monto solicitado excede el límite (#{requested_amount} > #{@config.amount_limit})")
-      |> maybe_add(not checks.sufficient_income,
-           "ingreso mensual insuficiente para el monto solicitado")
-      |> maybe_add(not checks.balance_not_critical,
-           "balance de cuenta críticamente bajo")
-      |> maybe_add(risk_level == "HIGH",
-           "perfil de alto riesgo")
+      |> maybe_add(
+        not checks.credit_score_ok,
+        "puntaje crediticio muy bajo (#{credit_score} < #{@config.min_credit_score})"
+      )
+      |> maybe_add(
+        not checks.debt_to_income_ok,
+        "ratio deuda/ingreso muy alto (#{dti_to_display(debt_to_income_ratio)}% > #{round(@config.max_debt_to_income_ratio * 100)}%)"
+      )
+      |> maybe_add(
+        not checks.amount_within_limit,
+        "monto solicitado excede el límite (#{requested_amount} > #{@config.amount_limit})"
+      )
+      |> maybe_add(
+        not checks.sufficient_income,
+        "ingreso mensual insuficiente para el monto solicitado"
+      )
+      |> maybe_add(
+        not checks.balance_not_critical,
+        "balance de cuenta críticamente bajo"
+      )
+      |> maybe_add(
+        risk_level == "HIGH",
+        "perfil de alto riesgo"
+      )
 
     "Crédito rechazado: #{Enum.join(reasons, ", ")}"
   end

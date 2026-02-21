@@ -58,5 +58,6 @@ defmodule Ecredit.Countries.Strategy do
   @doc """
   Call provider bank for data for a specific country
   """
-  @callback request_bank_data(payload :: map()) :: {:ok, map()} | {:error, String.t()} | {:provider_known_error, String.t()}
+  @callback request_bank_data(payload :: map()) ::
+              {:ok, map()} | {:error, String.t()} | {:provider_known_error, String.t()}
 end
