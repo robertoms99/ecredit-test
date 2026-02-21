@@ -11,7 +11,7 @@ defmodule Ecredit.Countries.Mexico do
 
   @config %{
     code: "MX",
-    name: "Mexico",
+    name: "México",
     icon: "🇲🇽",
     amount_limit: 500_000,
     currency: "MXN",
@@ -24,75 +24,67 @@ defmodule Ecredit.Countries.Mexico do
   @impl true
   def get_config, do: @config
 
+  # --- Document Validation ---
+
   @impl true
   def validate_document_id(document_id) when is_binary(document_id) do
-    normalized = String.upcase(String.trim(document_id))
+    trimmed = String.trim(document_id)
 
-    cond do
-      String.length(normalized) != 18 ->
-        {:error, "CURP must be exactly 18 characters"}
+    if trimmed == "" do
+      {:error, "CURP es requerido"}
+    else
+      curp = String.upcase(trimmed)
 
-      not Regex.match?(@curp_pattern, normalized) ->
-        {:error, "Invalid CURP format"}
+      cond do
+        String.length(curp) != 18 ->
+          {:error, "CURP debe tener exactamente 18 caracteres"}
 
-      true ->
-        {:ok, normalized}
+        not Regex.match?(@curp_pattern, curp) ->
+          {:error, "Formato de CURP inválido. Formato esperado: AAAA######HHHHH##"}
+
+        true ->
+          {:ok, curp}
+      end
     end
   end
 
-  def validate_document_id(_), do: {:error, "Document ID must be a string"}
+  def validate_document_id(_), do: {:error, "CURP es requerido"}
 
   @impl true
-  def evaluate_credit(financial_data, requested_amount, _monthly_income) do
-    credit_info = financial_data["informacion_crediticia"]
+  def evaluate_credit(financial_data, requested_amount, monthly_income) do
+    credit_info   = financial_data["informacion_crediticia"]
     financial_info = financial_data["informacion_financiera"]
-    credit_score =  credit_info["calificacion_buro"]
-    current_debt = financial_info["deuda_mensual_mxn"]
-    account_balance =financial_info["saldo_cuenta_mxn"]
-    provider_income =financial_info["ingreso_mensual_mxn"]
+
+    credit_score    = credit_info["calificacion_buro"] || 0
+    current_debt    = financial_info["deuda_mensual_mxn"] || 0
+    account_balance = financial_info["saldo_cuenta_mxn"] || 0
+    provider_income = financial_info["ingreso_mensual_mxn"] || monthly_income || 0
 
     debt_to_income_ratio =
-      if provider_income > 0, do: current_debt / provider_income, else: 1.0
+      if provider_income > 0, do: current_debt / provider_income, else: :infinity
 
     risk_level = calculate_risk_level(credit_score, debt_to_income_ratio)
 
     checks = %{
-      credit_score_ok: credit_score >= @config.min_credit_score,
-      debt_to_income_ok: debt_to_income_ratio <= @config.max_debt_to_income_ratio,
-      amount_within_limit: requested_amount <= @config.amount_limit,
-      sufficient_income: provider_income >= requested_amount * 0.15,
-      positive_balance: account_balance >= 0
+      credit_score_ok:      credit_score >= @config.min_credit_score,
+      debt_to_income_ok:    dti_within_limit?(debt_to_income_ratio, @config.max_debt_to_income_ratio),
+      amount_within_limit:  requested_amount <= @config.amount_limit,
+      sufficient_income:    provider_income >= requested_amount * 0.15,
+      positive_balance:     account_balance >= 0
     }
 
     all_checks_pass = Enum.all?(Map.values(checks))
     approved = all_checks_pass and risk_level != "HIGH"
 
-    reason =
-      cond do
-        not checks.credit_score_ok ->
-          "Credit score too low (#{credit_score} < #{@config.min_credit_score})"
+    reason = build_reason(approved, risk_level, checks, credit_score, debt_to_income_ratio, requested_amount)
 
-        not checks.debt_to_income_ok ->
-          "Debt to income ratio too high (#{Float.round(debt_to_income_ratio * 100, 1)}%)"
-
-        not checks.sufficient_income ->
-          "Insufficient income for requested amount"
-
-        not checks.positive_balance ->
-          "Negative account balance"
-
-        risk_level == "HIGH" ->
-          "High risk profile"
-
-        true ->
-          nil
-      end
-
-      recommended_amount = 0
-      if (!approved && provider_income > 0) do
-        max_by_dti = (provider_income * 0.3 - current_debt) * 12;
-        max_by_income = provider_income * 6.67;
-        recommended_amount = max(0, Float.floor(min(min(max_by_dti, max_by_income), @config.amount_limit)));
+    recommended_amount =
+      if not approved and provider_income > 0 do
+        max_by_dti    = (provider_income * 0.3 - current_debt) * 12
+        max_by_income = provider_income * 6.67
+        max(0, Float.floor(min(min(max_by_dti, max_by_income), @config.amount_limit)))
+      else
+        nil
       end
 
     %{
@@ -103,7 +95,7 @@ defmodule Ecredit.Countries.Mexico do
       recommended_amount: (if approved, do: nil, else: recommended_amount),
       metadata: %{
         checks: checks,
-        debt_to_income_ratio: debt_to_income_ratio,
+        debt_to_income_ratio: dti_to_float(debt_to_income_ratio),
         current_debt: current_debt,
         account_balance: account_balance,
         provider_income: provider_income,
@@ -112,13 +104,6 @@ defmodule Ecredit.Countries.Mexico do
     }
   end
 
-  defp calculate_risk_level(credit_score, debt_to_income_ratio) do
-    cond do
-      credit_score >= 750 and debt_to_income_ratio < 0.3 -> "LOW"
-      credit_score >= 600 and debt_to_income_ratio < 0.4 -> "MEDIUM"
-      true -> "HIGH"
-    end
-  end
 
   @impl true
   def provider_endpoint, do: Application.get_env(:ecredit, :mexico_provider_url)
@@ -128,10 +113,10 @@ defmodule Ecredit.Countries.Mexico do
     provider_url = provider_endpoint()
 
     body = %{
-      document_id: payload.credit_request.document_id,
-      credit_request_id: payload.credit_request.id,
-      callback_url: payload.callback_url,
-      extra_prop_mexico: "xxx"
+      document_id:        payload.credit_request.document_id,
+      credit_request_id:  payload.credit_request.id,
+      callback_url:       payload.callback_url,
+      extra_prop_mexico:  "xxx"
     }
 
     Logger.info("Calling mexico bank provider at #{provider_url} for credit request #{body.credit_request_id}")
@@ -144,52 +129,96 @@ defmodule Ecredit.Countries.Mexico do
 
       {:ok, %{status: status, body: body}} ->
         Logger.error("Bank provider returned error: #{status} - #{inspect(body)}")
-        if (is_map(body)) do
+        if is_map(body) and body["error"] do
           {:provider_known_error, body["error"]}
+        else
+          {:error, "Ocurrio algo inesperado al solicitar informacion al proveedor"}
         end
-        {:error, "Ocurrio algo inesperado al solicitar informacion al proveedor"}
 
       {:error, reason} ->
         Logger.error("Failed to call bank provider: #{inspect(reason)}")
         {:error, "Connection failed: #{inspect(reason)}"}
     end
-
   end
-
-  defp get_correlation_id(%{"correlation_id" => id}), do: id
-  defp get_correlation_id(_), do: {:error, "Provider did not return correlation_id"}
 
   @impl true
   def validate_provider_payload(payload) do
-    required_fields = ["informacion_crediticia", "informacion_financiera"]
-    missing =
-      Enum.filter(required_fields, fn field ->
-        not Map.has_key?(payload, field)
-      end)
+    with :ok <- require_object_field(payload, "informacion_crediticia", "Falta informacion_crediticia en el payload del proveedor de México"),
+         :ok <- require_object_field(payload, "informacion_financiera", "Falta informacion_financiera en el payload del proveedor de México") do
 
-    if Enum.empty?(missing) do
       credit_info = payload["informacion_crediticia"]
-      fin_info = payload["informacion_financiera"]
+      fin_info    = payload["informacion_financiera"]
 
-      if(!is_number(credit_info["calificacion_buro"])) do
-        {:error, "calificacion_buro debe ser un numero"}
+      with :ok <- require_number(credit_info, "calificacion_buro", "calificacion_buro debe ser un número"),
+           :ok <- require_non_negative_number(fin_info, "ingreso_mensual_mxn", "ingreso_mensual_mxn debe ser un número no negativo"),
+           :ok <- require_non_negative_number(fin_info, "deuda_mensual_mxn", "deuda_mensual_mxn debe ser un número no negativo"),
+           :ok <- require_number(fin_info, "saldo_cuenta_mxn", "saldo_cuenta_mxn debe ser un número") do
+        {:ok, payload}
       end
-
-      if(!is_number(fin_info["ingreso_mensual_mxn"] ||fin_info["ingreso_mensual_mxn"] < 0)) do
-        {:error, "ingreso_mensual_mxn debe ser un numero y mayor igual a 0"}
-      end
-
-      if(!is_number(fin_info["deuda_mensual_mxn"] || fin_info["deuda_mensual_mxn"] < 0)) do
-        {:error, "deuda_mensual_mxn debe ser un numero y mayor igual a 0"}
-      end
-
-      if(!is_number(fin_info["saldo_cuenta_mxn"] )) do
-        {:error, "saldo_cuenta_mxn debe ser un numero"}
-      end
-      {:ok, payload}
-
-    else
-      {:error, "Missing required fields: #{Enum.join(missing, ", ")}"}
     end
+  end
+
+
+  defp calculate_risk_level(credit_score, :infinity), do: calculate_risk_level(credit_score, 1.0)
+
+  defp calculate_risk_level(credit_score, debt_to_income_ratio) do
+    cond do
+      credit_score >= 750 and debt_to_income_ratio < 0.3  -> "LOW"
+      credit_score >= 600 and debt_to_income_ratio < 0.4  -> "MEDIUM"
+      true                                                  -> "HIGH"
+    end
+  end
+
+  defp dti_within_limit?(:infinity, _limit), do: false
+  defp dti_within_limit?(dti, limit), do: dti <= limit
+
+  defp dti_to_float(:infinity), do: nil
+  defp dti_to_float(dti), do: Float.round(dti * 100, 2)
+
+  defp build_reason(true, risk_level, _checks, credit_score, debt_to_income_ratio, _requested_amount) do
+    dti_pct = dti_to_display(debt_to_income_ratio)
+    "Crédito aprobado. Nivel de riesgo: #{risk_level}, Puntaje crediticio: #{credit_score}, Relación deuda/ingreso: #{dti_pct}%"
+  end
+
+  defp build_reason(false, risk_level, checks, credit_score, debt_to_income_ratio, requested_amount) do
+    reasons =
+      []
+      |> maybe_add(not checks.credit_score_ok,
+           "puntaje crediticio muy bajo (#{credit_score} < #{@config.min_credit_score})")
+      |> maybe_add(not checks.debt_to_income_ok,
+           "relación deuda/ingreso muy alta (#{dti_to_display(debt_to_income_ratio)}% > #{round(@config.max_debt_to_income_ratio * 100)}%)")
+      |> maybe_add(not checks.amount_within_limit,
+           "monto solicitado excede el límite (#{requested_amount} > #{@config.amount_limit})")
+      |> maybe_add(not checks.sufficient_income,
+           "ingreso mensual insuficiente para el monto solicitado")
+      |> maybe_add(not checks.positive_balance,
+           "saldo de cuenta negativo")
+      |> maybe_add(risk_level == "HIGH",
+           "perfil de alto riesgo")
+
+    "Crédito rechazado: #{Enum.join(reasons, ", ")}"
+  end
+
+  defp maybe_add(list, true, msg), do: list ++ [msg]
+  defp maybe_add(list, false, _msg), do: list
+
+  defp dti_to_display(:infinity), do: "∞"
+  defp dti_to_display(dti), do: Float.round(dti * 100, 1) |> :erlang.float_to_binary(decimals: 1)
+
+  defp get_correlation_id(%{"correlation_id" => id}), do: id
+  defp get_correlation_id(_), do: nil
+
+  defp require_object_field(map, field, error_msg) do
+    value = map[field]
+    if is_map(value), do: :ok, else: {:error, error_msg}
+  end
+
+  defp require_number(map, field, error_msg) do
+    if is_number(map[field]), do: :ok, else: {:error, error_msg}
+  end
+
+  defp require_non_negative_number(map, field, error_msg) do
+    value = map[field]
+    if is_number(value) and value >= 0, do: :ok, else: {:error, error_msg}
   end
 end
