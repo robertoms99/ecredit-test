@@ -2,8 +2,7 @@ defmodule Ecredit.Repo.Migrations.CreateCoreTables do
   use Ecto.Migration
 
   def change do
-    # Create users table
-    create table(:users, primary_key: false) do
+    create_if_not_exists table(:users, primary_key: false) do
       add :id, :uuid, primary_key: true, default: fragment("gen_random_uuid()")
       add :email, :string, size: 255, null: false
       add :password_hash, :string, size: 255, null: false
@@ -14,10 +13,9 @@ defmodule Ecredit.Repo.Migrations.CreateCoreTables do
       add :updated_at, :utc_datetime, null: false, default: fragment("now()")
     end
 
-    create unique_index(:users, [:email])
+    create_if_not_exists unique_index(:users, [:email])
 
-    # Create request_statuses table
-    create table(:request_statuses, primary_key: false) do
+    create_if_not_exists table(:request_statuses, primary_key: false) do
       add :id, :uuid, primary_key: true, default: fragment("gen_random_uuid()")
       add :code, :string, size: 64, null: false
       add :name, :string, size: 255, null: false
@@ -28,10 +26,9 @@ defmodule Ecredit.Repo.Migrations.CreateCoreTables do
       add :updated_at, :utc_datetime, null: false, default: fragment("now()")
     end
 
-    create unique_index(:request_statuses, [:code])
+    create_if_not_exists unique_index(:request_statuses, [:code])
 
-    # Create credit_requests table
-    create table(:credit_requests, primary_key: false) do
+    create_if_not_exists table(:credit_requests, primary_key: false) do
       add :id, :uuid, primary_key: true, default: fragment("gen_random_uuid()")
       add :country, :string, size: 2, null: false
       add :full_name, :string, size: 255, null: false
@@ -45,17 +42,11 @@ defmodule Ecredit.Repo.Migrations.CreateCoreTables do
       add :updated_at, :utc_datetime, null: false, default: fragment("now()")
     end
 
-    create index(:credit_requests, [:country])
-    create index(:credit_requests, [:status_id])
-    create index(:credit_requests, [:requested_at])
+    create_if_not_exists index(:credit_requests, [:country])
+    create_if_not_exists index(:credit_requests, [:status_id])
+    create_if_not_exists index(:credit_requests, [:requested_at])
 
-    # Add foreign keys for credit_requests
-    create constraint(:credit_requests, :credit_requests_user_id_fk,
-             check: "user_id IS NOT NULL"
-           )
-
-    # Create banking_info table
-    create table(:banking_info, primary_key: false) do
+    create_if_not_exists table(:banking_info, primary_key: false) do
       add :id, :uuid, primary_key: true, default: fragment("gen_random_uuid()")
       add :provider_name, :string, size: 255, null: false
       add :provider_response_at, :utc_datetime
@@ -69,8 +60,7 @@ defmodule Ecredit.Repo.Migrations.CreateCoreTables do
       add :updated_at, :utc_datetime, null: false, default: fragment("now()")
     end
 
-    # Create status_transitions table
-    create table(:status_transitions, primary_key: false) do
+    create_if_not_exists table(:status_transitions, primary_key: false) do
       add :id, :uuid, primary_key: true, default: fragment("gen_random_uuid()")
       add :reason, :text
       add :triggered_by, :string, size: 32, null: false
@@ -81,7 +71,7 @@ defmodule Ecredit.Repo.Migrations.CreateCoreTables do
       add :created_at, :utc_datetime, null: false, default: fragment("now()")
     end
 
-    create index(:status_transitions, [:credit_request_id])
-    create index(:status_transitions, [:to_status_id])
+    create_if_not_exists index(:status_transitions, [:credit_request_id])
+    create_if_not_exists index(:status_transitions, [:to_status_id])
   end
 end

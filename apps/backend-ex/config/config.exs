@@ -4,7 +4,7 @@ config :ecredit,
   ecto_repos: [Ecredit.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true]
 
-config :ecredit, EcreditWeb.Endpoint,
+  config :ecredit, EcreditWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
@@ -12,7 +12,8 @@ config :ecredit, EcreditWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Ecredit.PubSub,
-  live_view: [signing_salt: "KDibu0cd"]
+  live_view: [signing_salt: "KDibu0cd"],
+  server: true
 
 config :ecredit, Oban,
   engine: Oban.Engines.Basic,

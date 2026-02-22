@@ -43,6 +43,7 @@ defmodule Ecredit.MixProject do
       {:bandit, "~> 1.5"},
       {:guardian, "~> 2.3"},
       {:bcrypt_elixir, "~> 3.0"},
+      {:dotenvy, "~> 1.0.0"},
       {:oban, "~> 2.19"},
       {:req, "~> 0.5"},
       {:cors_plug, "~> 3.0"},

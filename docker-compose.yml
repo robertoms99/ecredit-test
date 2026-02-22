@@ -64,13 +64,15 @@ services:
     image: ecredit-backend:latest
     container_name: ecredit-backend
     restart: unless-stopped
+    profiles:
+      - bun
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
       ORIGIN_API: http://backend:${BACKEND_PORT}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
+      JWT_SECRET: ${JWT_SECRET:-secret}
       FRONTEND_URL: http://localhost:${FRONTEND_PORT}
       MEXICO_PROVIDER_URL: http://provider-sim:${PROVIDER_PORT}/providers/mx
       COLOMBIA_PROVIDER_URL: http://provider-sim:${PROVIDER_PORT}/providers/co
@@ -104,11 +106,13 @@ services:
     ports:
       - "${BACKEND_EX_PORT:-4000}:${BACKEND_EX_PORT:-4000}"
     environment:
+      ORIGIN_API: http://backend-ex:${BACKEND_EX_PORT}
       DATABASE_URL: ecto://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-change-this-secret-in-production-must-be-at-least-64-bytes}
+      JWT_SECRET: ${JWT_SECRET:-secret}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-secret}
       FRONTEND_URL: http://localhost:${FRONTEND_PORT}
-      PROVIDER_SIM_URL: http://provider-sim:${PROVIDER_PORT}
+      MEXICO_PROVIDER_URL: http://provider-sim:${PROVIDER_PORT}/providers/mx
+      COLOMBIA_PROVIDER_URL: http://provider-sim:${PROVIDER_PORT}/providers/co
       PHX_HOST: localhost
       PHX_SERVER: "true"
       PORT: ${BACKEND_EX_PORT:-4000}
@@ -143,7 +147,6 @@ services:
     depends_on:
       - db
       - provider-sim
-      - backend
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
       interval: 15s

@@ -144,7 +144,7 @@ just dev-elixir
 
 Levanta PostgreSQL con Docker y arranca backend-ex, frontend y provider-sim.
 
-> **Primera vez con Elixir?** Necesitas instalar dependencias y crear la DB:
+> **Primera vez con Elixir?** Necesitas instalar dependencias y configurar la DB:
 > ```bash
 > cd apps/backend-ex
 > mix deps.get

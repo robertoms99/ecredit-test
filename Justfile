@@ -43,7 +43,7 @@ start:
   PROVIDER_PORT=$(grep "^PROVIDER_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3001")
 
   # Start Docker Compose
-  {{COMPOSE}} up -d --build
+  {{COMPOSE}} --profile bun up -d --build
 
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -113,7 +113,7 @@ start-elixir:
   fi
 
   # Start Docker Compose with Elixir profile
-  {{COMPOSE}} --profile elixir up --build
+  {{COMPOSE}} --profile elixir up -d --build
 
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
