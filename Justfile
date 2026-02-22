@@ -43,7 +43,7 @@ start:
   PROVIDER_PORT=$(grep "^PROVIDER_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3001")
 
   # Start Docker Compose
-  {{COMPOSE}} --profile bun up -d --build
+  {{COMPOSE}} --profile bun up --build
 
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -53,11 +53,7 @@ start:
   echo "📱 Frontend:     http://localhost:$FRONTEND_PORT"
   echo "🔌 Backend API:  http://localhost:$BACKEND_PORT"
   echo "🏦 Provider Sim: http://localhost:$PROVIDER_PORT"
-  echo ""
-  echo "🔐 Test Credentials:"
-  echo "   Email: admin1@ecredit.com"
-  echo "   Pass:  admin123456"
-  echo ""
+
 
 # Start eCredit with Elixir backend (Phoenix Channels)
 start-elixir:
@@ -113,7 +109,7 @@ start-elixir:
   fi
 
   # Start Docker Compose with Elixir profile
-  {{COMPOSE}} --profile elixir up -d --build
+  {{COMPOSE}} --profile elixir up --build
 
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -124,11 +120,6 @@ start-elixir:
   echo "🔌 Backend API:  http://localhost:$BACKEND_EX_PORT"
   echo "📊 Oban UI:      http://localhost:$BACKEND_EX_PORT/oban"
   echo "🏦 Provider Sim: http://localhost:$PROVIDER_PORT"
-  echo ""
-  echo "🔐 Test Credentials:"
-  echo "   Email: admin1@ecredit.com"
-  echo "   Pass:  admin123456"
-  echo ""
 
 # Stop all services (keeps volumes)
 down:

@@ -5,6 +5,7 @@ defmodule Ecredit.Application do
 
   @impl true
   def start(_type, _args) do
+
     children = [
       Ecredit.Repo,
       {DNSCluster, query: Application.get_env(:ecredit, :dns_cluster_query) || :ignore},
@@ -15,7 +16,9 @@ defmodule Ecredit.Application do
     ]
 
     opts = [strategy: :one_for_one, name: Ecredit.Supervisor]
-    Supervisor.start_link(children, opts)
+     {:ok, pid} = Supervisor.start_link(children, opts)
+    Ecredit.Release.migrate_and_seed()
+      {:ok, pid}
   end
 
   @impl true
