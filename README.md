@@ -20,16 +20,6 @@ Bun y Elixir no corren simultáneamente pero comparten la misma base de datos Po
 
 ---
 
-## Estructura
-
-apps/
-├── backend/          # API REST con Bun (3000)
-├── backend-ex/       # API REST con Elixir/Phoenix (3000)
-├── frontend/         # SPA React (5173 dev / 8080 prod)
-└── provider-sim/     # Simulador de proveedores (3001)
-
----
-
 ## Requisitos
 
 Para despliegue local con Docker Compose:
