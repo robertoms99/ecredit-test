@@ -1,10 +1,10 @@
 import Config
 
 config :ecredit, Ecredit.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "test",
+  password: "test",
   hostname: "localhost",
-  database: "ecredit_dev",
+  database: "test_db",
   port: 5432,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,

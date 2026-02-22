@@ -1,5 +1,5 @@
 # Build stage
-FROM elixir:1.17-otp-27-alpine AS build
+FROM hexpm/elixir:1.19.4-erlang-27.3.4.6-alpine-3.22.2 AS build
 
 # Install build dependencies
 RUN apk add --no-cache build-base git
@@ -33,10 +33,10 @@ RUN mix compile
 RUN mix release
 
 # Runtime stage
-FROM alpine:3.20 AS runtime
+FROM alpine:3.22.2 AS runtime
 
 # Install runtime dependencies
-RUN apk add --no-cache libstdc++ openssl ncurses-libs curl
+RUN apk add --no-cache openssl ncurses-libs libstdc++
 
 # Set environment variables
 ENV MIX_ENV=prod

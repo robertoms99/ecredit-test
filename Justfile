@@ -1,130 +1,184 @@
-# Usage examples:
-#   just start          # start with Bun backend (default)
-#   just start-elixir   # start with Elixir backend
-#   just up             # start services in background
-#   just down           # stop services
-#   just clean          # stop and remove volumes
-#   just build          # build images
-#   just ps             # show service status
-#   just logs backend   # follow logs for a service (db, backend, frontend, provider-sim, redis)
-#   just shell backend  # open a shell in a running container
-#   just db-shell       # open psql in the Postgres container
+# eCredit Justfile - Docker Compose Management
+#
+# Usage:
+#   just start          # Start with Bun backend (Socket.IO)
+#   just start-elixir   # Start with Elixir backend (Phoenix Channels)
+#   just down           # Stop all services
+#   just clean          # Stop services and remove volumes
+#   just logs <service> # Follow logs (backend, frontend, db, redis, provider-sim)
+#   just ps             # Show service status
 
 set shell := ["bash", "-cu"]
 
 ENV_FILE := ".env"
 COMPOSE := "docker compose"
 
-# Load environment variables from .env
-export BACKEND_PORT := `grep "^BACKEND_PORT=" {{ENV_FILE}} 2>/dev/null | cut -d'=' -f2 || echo "3000"`
-export BACKEND_EX_PORT := `grep "^BACKEND_EX_PORT=" {{ENV_FILE}} 2>/dev/null | cut -d'=' -f2 || echo "4000"`
-export FRONTEND_PORT := `grep "^FRONTEND_PORT=" {{ENV_FILE}} 2>/dev/null | cut -d'=' -f2 || echo "8080"`
-export PROVIDER_PORT := `grep "^PROVIDER_PORT=" {{ENV_FILE}} 2>/dev/null | cut -d'=' -f2 || echo "3001"`
-export VITE_API_URL := `grep "^VITE_API_URL=" {{ENV_FILE}} 2>/dev/null | cut -d'=' -f2 || echo "http://localhost:3000"`
-
 default:
-  @echo "Available tasks:"
+  @echo "🚀 eCredit - Available Commands:"
+  @echo ""
   @just --list
 
+# Start eCredit with Bun backend (Socket.IO)
 start:
-  @echo "🚀 Starting eCredit with Bun backend..."
-  @if [ ! -f {{ENV_FILE}} ]; then cp .env.example {{ENV_FILE}}; echo "✅ Created {{ENV_FILE}} from .env.example"; fi
-  {{COMPOSE}} up -d --build
-  @echo ""
-  @echo "✅ System ready!"
-  @echo ""
-  @echo "📱 Frontend:      http://localhost:$(grep "^FRONTEND_PORT=" {{ENV_FILE}} | cut -d'=' -f2 || echo 8080)"
-  @echo "🔌 Backend:       http://localhost:$(grep "^BACKEND_PORT=" {{ENV_FILE}} | cut -d'=' -f2 || echo 3000)"
-  @echo "🏦 Provider Sim:  http://localhost:$(grep "^PROVIDER_PORT=" {{ENV_FILE}} | cut -d'=' -f2 || echo 3001)"
-  @echo ""
-  @echo "🔐 Credentials:"
-  @echo "   Email: admin1@ecredit.com"
-  @echo "   Pass:  admin123456"
-  @echo " "
-  @echo "   Email: admin2@ecredit.com"
-  @echo "   Pass:  admin123456"
+  #!/usr/bin/env bash
+  set -euo pipefail
 
-start-elixir:
-  @echo "🚀 Starting eCredit with Elixir backend..."
-  @if [ ! -f {{ENV_FILE}} ]; then cp .env.example {{ENV_FILE}}; echo "✅ Created {{ENV_FILE}} from .env.example"; fi
-  @VITE_URL=$$(grep "^VITE_API_URL=" {{ENV_FILE}} | cut -d'=' -f2); \
-  if [[ "$$VITE_URL" != "http://localhost:4000" ]]; then \
-    echo "⚠️  WARNING: VITE_API_URL is not set to Elixir port (4000)"; \
-    echo "   Current: $$VITE_URL"; \
-    echo "   Expected: http://localhost:4000"; \
-    echo ""; \
-    echo "   Please edit {{ENV_FILE}} and change:"; \
-    echo "   VITE_API_URL=http://localhost:4000"; \
-    echo "   API_URL=http://localhost:4000"; \
-    echo ""; \
-    exit 1; \
+  echo "🚀 Starting eCredit with Bun backend..."
+  echo ""
+
+  # Create .env if missing
+  if [ ! -f "{{ENV_FILE}}" ]; then
+    cp .env.example "{{ENV_FILE}}"
+    echo "✅ Created {{ENV_FILE}} from .env.example"
+    echo ""
   fi
-  {{COMPOSE}} --profile elixir up -d --build
-  @echo ""
-  @echo "✅ System ready!"
-  @echo ""
-  @echo "📱 Frontend:      http://localhost:$(grep "^FRONTEND_PORT=" {{ENV_FILE}} | cut -d'=' -f2 || echo 8080)"
-  @echo "🔌 Backend:       http://localhost:$(grep "^BACKEND_EX_PORT=" {{ENV_FILE}} | cut -d'=' -f2 || echo 4000)"
-  @echo "📊 Oban UI:       http://localhost:$(grep "^BACKEND_EX_PORT=" {{ENV_FILE}} | cut -d'=' -f2 || echo 4000)/oban"
-  @echo "🏦 Provider Sim:  http://localhost:$(grep "^PROVIDER_PORT=" {{ENV_FILE}} | cut -d'=' -f2 || echo 3001)"
-  @echo ""
-  @echo "🔐 Credentials:"
-  @echo "   Email: admin1@ecredit.com"
-  @echo "   Pass:  admin123456"
-  @echo ""
 
-up:
-  # Starts all services in background
-  {{COMPOSE}} up -d
+  # Extract ports from .env
+  FRONTEND_PORT=$(grep "^FRONTEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "5173")
+  BACKEND_PORT=$(grep "^BACKEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3000")
+  PROVIDER_PORT=$(grep "^PROVIDER_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3001")
 
+  # Start Docker Compose
+  {{COMPOSE}} up -d --build
+
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "✅ eCredit System Ready! (Bun + Socket.IO)"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "📱 Frontend:     http://localhost:$FRONTEND_PORT"
+  echo "🔌 Backend API:  http://localhost:$BACKEND_PORT"
+  echo "🏦 Provider Sim: http://localhost:$PROVIDER_PORT"
+  echo ""
+  echo "🔐 Test Credentials:"
+  echo "   Email: admin1@ecredit.com"
+  echo "   Pass:  admin123456"
+  echo ""
+
+# Start eCredit with Elixir backend (Phoenix Channels)
+start-elixir:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  echo "🚀 Starting eCredit with Elixir backend..."
+  echo ""
+
+  # Create .env if missing
+  if [ ! -f "{{ENV_FILE}}" ]; then
+    cp .env.example "{{ENV_FILE}}"
+    echo "✅ Created {{ENV_FILE}} from .env.example"
+    echo ""
+  fi
+
+  # Extract configuration from .env
+  FRONTEND_PORT=$(grep "^FRONTEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "5173")
+  BACKEND_EX_PORT=$(grep "^BACKEND_EX_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "4000")
+  PROVIDER_PORT=$(grep "^PROVIDER_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3001")
+  VITE_API_URL=$(grep "^VITE_API_URL=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "")
+  VITE_REALTIME=$(grep "^VITE_REALTIME_PROVIDER=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "")
+
+  # Validate configuration for Elixir backend
+  EXPECTED_URL="http://localhost:$BACKEND_EX_PORT"
+  EXPECTED_PROVIDER="phoenix"
+
+  HAS_ERROR=false
+
+  if [[ "$VITE_API_URL" != "$EXPECTED_URL" ]]; then
+    echo "❌ ERROR: VITE_API_URL is not configured for Elixir backend"
+    echo "   Current:  $VITE_API_URL"
+    echo "   Expected: $EXPECTED_URL"
+    echo ""
+    HAS_ERROR=true
+  fi
+
+  if [[ "$VITE_REALTIME" != "$EXPECTED_PROVIDER" ]]; then
+    echo "❌ ERROR: VITE_REALTIME_PROVIDER is not configured for Elixir backend"
+    echo "   Current:  $VITE_REALTIME"
+    echo "   Expected: $EXPECTED_PROVIDER"
+    echo ""
+    HAS_ERROR=true
+  fi
+
+  if [[ "$HAS_ERROR" == "true" ]]; then
+    echo "📝 To use Elixir backend, update {{ENV_FILE}} with:"
+    echo ""
+    echo "   VITE_API_URL=$EXPECTED_URL"
+    echo "   VITE_REALTIME_PROVIDER=$EXPECTED_PROVIDER"
+    echo ""
+    exit 1
+  fi
+
+  # Start Docker Compose with Elixir profile
+  {{COMPOSE}} --profile elixir up --build
+
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "✅ eCredit System Ready! (Elixir + Phoenix)"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "📱 Frontend:     http://localhost:$FRONTEND_PORT"
+  echo "🔌 Backend API:  http://localhost:$BACKEND_EX_PORT"
+  echo "📊 Oban UI:      http://localhost:$BACKEND_EX_PORT/oban"
+  echo "🏦 Provider Sim: http://localhost:$PROVIDER_PORT"
+  echo ""
+  echo "🔐 Test Credentials:"
+  echo "   Email: admin1@ecredit.com"
+  echo "   Pass:  admin123456"
+  echo ""
+
+# Stop all services (keeps volumes)
 down:
-  # Stops services (keeps volumes)
   {{COMPOSE}} down
 
+# Stop services and remove volumes
 clean:
-  # Stops services and removes volumes
   {{COMPOSE}} down -v
+  @echo "✅ All services stopped and volumes removed"
 
+# Build Docker images
 build:
-  # Builds images defined in docker-compose.yml
   {{COMPOSE}} build
 
+# Rebuild and restart services
 rebuild:
-  # Builds images then starts services
   {{COMPOSE}} build && {{COMPOSE}} up -d
+  @echo "✅ Services rebuilt and restarted"
 
+# Show service status
 ps:
-  # Shows service status
   {{COMPOSE}} ps
 
+# Follow logs for a specific service
 logs SERVICE:
-  # Follows logs of a specific service (db, backend, frontend, provider-sim, redis)
   {{COMPOSE}} logs -f {{SERVICE}}
 
-shell SERVICE:
-  # Opens an interactive shell in a running container by service name
-  docker exec -it $( {{COMPOSE}} ps --services --format json | jq -r '.[]' | grep -E "^{{SERVICE}}$" >/dev/null && {{COMPOSE}} ps -q {{SERVICE}} ) sh || true
-
+# Backend logs (convenience)
 backend-logs:
-  # Convenience: follow backend service logs
   {{COMPOSE}} logs -f backend
 
+# Frontend logs (convenience)
 frontend-logs:
-  # Convenience: follow frontend service logs
   {{COMPOSE}} logs -f frontend
 
+# Provider simulator logs (convenience)
 provider-logs:
-  # Convenience: follow provider-sim service logs
   {{COMPOSE}} logs -f provider-sim
 
+# Redis logs (convenience)
 redis-logs:
-  # Convenience: follow redis service logs
   {{COMPOSE}} logs -f redis
 
+# Database logs (convenience)
 db-logs:
-  # Convenience: follow db service logs
   {{COMPOSE}} logs -f db
 
+# Open PostgreSQL shell
 db-shell:
-  # Open psql inside the Postgres container (uses env defaults if not set)
-  docker exec -it ecredit-db sh -lc 'psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ecredit_dev}'
+  #!/usr/bin/env bash
+  POSTGRES_USER=$(grep "^POSTGRES_USER=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "postgres")
+  POSTGRES_DB=$(grep "^POSTGRES_DB=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "ecredit_dev")
+  docker exec -it ecredit-db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+
+# Open shell in a running container
+shell SERVICE:
+  docker exec -it ecredit-{{SERVICE}} sh
