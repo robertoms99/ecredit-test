@@ -1,12 +1,16 @@
-# eCredit Justfile - Docker Compose Management
+# eCredit Justfile
 #
-# Usage:
-#   just start          # Start with Bun backend (Socket.IO)
-#   just start-elixir   # Start with Elixir backend (Phoenix Channels)
+# Docker Compose (production-like):
+#   just start          # Deploy with Bun backend (Socket.IO)
+#   just start-elixir   # Deploy with Elixir backend (Phoenix Channels)
 #   just down           # Stop all services
 #   just clean          # Stop services and remove volumes
 #   just logs <service> # Follow logs (backend, frontend, db, redis, provider-sim)
 #   just ps             # Show service status
+#
+# Local Development:
+#   just dev            # Dev mode with Bun backend
+#   just dev-elixir     # Dev mode with Elixir backend
 
 set shell := ["bash", "-cu"]
 
@@ -182,3 +186,87 @@ db-shell:
 # Open shell in a running container
 shell SERVICE:
   docker exec -it ecredit-{{SERVICE}} sh
+
+# ============================================================================
+# Local Development (requires Docker for DB/Redis only)
+# ============================================================================
+
+# Start local dev with Bun backend (DB + Redis via Docker, apps locally)
+dev:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  echo "🛠️  Starting eCredit in development mode (Bun)..."
+  echo ""
+
+  # Create .env if missing
+  if [ ! -f "{{ENV_FILE}}" ]; then
+    cp .env.example "{{ENV_FILE}}"
+    echo "✅ Created {{ENV_FILE}} from .env.example"
+    echo ""
+  fi
+
+  # Start infrastructure
+  echo "📦 Starting PostgreSQL and Redis..."
+  {{COMPOSE}} up -d db redis
+
+  # Wait for DB
+  echo "⏳ Waiting for database..."
+  until docker exec ecredit-db pg_isready -U $(grep "^POSTGRES_USER=" "{{ENV_FILE}}" | cut -d'=' -f2) -q 2>/dev/null; do
+    sleep 1
+  done
+  echo "✅ Database ready"
+  echo ""
+
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "🛠️  Dev mode ready! Starting all services..."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "📱 Frontend:     http://localhost:5173"
+  echo "🔌 Backend API:  http://localhost:3000"
+  echo "📄 Backend Docs: http://localhost:3000/docs"
+  echo "🏦 Provider Sim: http://localhost:3001"
+  echo ""
+
+  # Run all dev processes
+  bun run dev
+
+# Start local dev with Elixir backend (DB via Docker, apps locally)
+dev-elixir:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  echo "🛠️  Starting eCredit in development mode (Elixir)..."
+  echo ""
+
+  # Create .env if missing
+  if [ ! -f "{{ENV_FILE}}" ]; then
+    cp .env.example "{{ENV_FILE}}"
+    echo "✅ Created {{ENV_FILE}} from .env.example"
+    echo ""
+  fi
+
+  # Start infrastructure
+  echo "📦 Starting PostgreSQL..."
+  {{COMPOSE}} up -d db
+
+  # Wait for DB
+  echo "⏳ Waiting for database..."
+  until docker exec ecredit-db pg_isready -U $(grep "^POSTGRES_USER=" "{{ENV_FILE}}" | cut -d'=' -f2) -q 2>/dev/null; do
+    sleep 1
+  done
+  echo "✅ Database ready"
+  echo ""
+
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "🛠️  Dev mode ready! Starting all services..."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "📱 Frontend:     http://localhost:5173"
+  echo "🔌 Backend API:  http://localhost:4000"
+  echo "📊 Oban UI:      http://localhost:4000/oban"
+  echo "🏦 Provider Sim: http://localhost:3001"
+  echo ""
+
+  # Run all dev processes
+  bun run dev:elixir
