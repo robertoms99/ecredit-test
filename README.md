@@ -67,7 +67,9 @@ Aunque Esto lo gestiona automáticamente just.
 
 ### Bun (default)
 
+```bash
 just start
+```
 
 Internamente:
 - Activa el profile bun
@@ -85,7 +87,9 @@ Servicios:
 
 ### Elixir
 
+```bash
 just start-elixir
+```
 
 Internamente:
 - Activa el profile elixir
@@ -104,12 +108,13 @@ Servicios:
 ---
 
 ## Comandos Docker
-
+```bash
 just down        — Detener servicios  
 just clean       — Detener y limpiar volumes  
 just logs <svc>  — Ver logs  
 just ps          — Estado de servicios  
 just db-shell    — Shell de PostgreSQL  
+```
 
 ---
 
@@ -156,7 +161,10 @@ apps/provider-sim/.env
 
 ### Desarrollo con Bun
 
+```bash
 just dev
+```
+
 
 Levanta:
 - PostgreSQL + Redis
@@ -168,7 +176,9 @@ Levanta:
 
 ### Desarrollo con Elixir
 
+```bash
 just dev-elixir
+```
 
 Levanta:
 - PostgreSQL
@@ -184,18 +194,20 @@ just dev-elixir debe funcionar out-of-the-box.
 
 ---
 
-## Documentación
+### Guías detalladas por app
 
-docs/mvp.md  
-docs/architecture.md  
-docs/evaluation.md  
-docs/backend-migration.md  
+Cada aplicación tiene su propio README con documentación específica de desarrollo:
+
+- [Backend Bun](apps/backend/README.md) — Hono, Drizzle, pg-boss, Socket.IO
+- [Backend Elixir](apps/backend-ex/README.md) — Phoenix, Ecto, Oban, Channels
+- [Frontend](apps/frontend/README.md) — React, Vite, TailwindCSS
+- [Provider Simulator](apps/provider-sim/README.md)
 
 ---
 
-## READMEs por aplicación
+## Documentación
 
-apps/backend/README.md  
-apps/backend-ex/README.md  
-apps/frontend/README.md  
-apps/provider-sim/README.md
+- [MVP y Visión del Producto](docs/mvp.md)
+- [Arquitectura](docs/architecture.md)
+- [Evaluación de Riesgo](docs/evaluation.md)
+- [Migración entre Backends](docs/backend-migration.md)
