@@ -120,27 +120,33 @@ just db-shell    — Shell de PostgreSQL
 
 ## Credenciales de Prueba  (Tanto desplegado como desarrollo)
 
+```
 Email: admin1@ecredit.com  
 Pass:  admin123456  
+```
 
+```
 Email: admin2@ecredit.com
 Pass:  admin123456  
+```
 
 ---
 
 ## Usuarios de Prueba  (Tanto desplegado como desarrollo)
 
-### México (MX)
+**Mexico (MX)**
 
-CURP | Score | Resultado
-GOMC860101HDFRRA09 | 750 | Aprobado
-BAPC901215MDFRRS03 | 450 | Rechazado
+| CURP | Score | Resultado |
+|------|-------|-----------|
+| `GOMC860101HDFRRA09` | 750 | ✅ Aprobado |
+| `BAPC901215MDFRRS03` | 450 | ❌ Rechazado |
 
-### Colombia (CO)
+**Colombia (CO)**
 
-Cédula | Score | Resultado
-1234567890 | 680 | Aprobado
-9876543210 | 400 | Rechazado
+| Cédula | Score | Resultado |
+|--------|-------|-----------|
+| `1234567890` | 680 | ✅ Aprobado |
+| `9876543210` | 400 | ❌ Rechazado |
 
 ---
 
