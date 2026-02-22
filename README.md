@@ -42,7 +42,9 @@ Existen dos niveles de configuración:
 
 Es el único archivo requerido para usar Docker Compose:
 
+```
 cp .env.example .env
+```
 
 Este archivo define:
 - Puertos
@@ -158,10 +160,12 @@ En desarrollo:
 - Las apps corren localmente
 - Las variables de entorno son por aplicación (mira los .env.example)
 
+```
 apps/backend/.env  
 apps/backend-ex/.env  
 apps/frontend/.env  
 apps/provider-sim/.env  
+```
 
 ---
 
