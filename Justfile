@@ -42,6 +42,9 @@ start:
   BACKEND_PORT=$(grep "^BACKEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3000")
   PROVIDER_PORT=$(grep "^PROVIDER_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3001")
 
+  export VITE_REALTIME_PROVIDER=socketio
+  export VITE_API_URL="http://localhost:${BACKEND_PORT}"
+
   # Start Docker Compose
   {{COMPOSE}} --profile bun up --build
 
@@ -72,41 +75,11 @@ start-elixir:
 
   # Extract configuration from .env
   FRONTEND_PORT=$(grep "^FRONTEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "5173")
-  BACKEND_EX_PORT=$(grep "^BACKEND_EX_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "4000")
+  BACKEND_PORT=$(grep "^BACKEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3000")
   PROVIDER_PORT=$(grep "^PROVIDER_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3001")
-  VITE_API_URL=$(grep "^VITE_API_URL=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "")
-  VITE_REALTIME=$(grep "^VITE_REALTIME_PROVIDER=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "")
 
-  # Validate configuration for Elixir backend
-  EXPECTED_URL="http://localhost:$BACKEND_EX_PORT"
-  EXPECTED_PROVIDER="phoenix"
-
-  HAS_ERROR=false
-
-  if [[ "$VITE_API_URL" != "$EXPECTED_URL" ]]; then
-    echo "❌ ERROR: VITE_API_URL is not configured for Elixir backend"
-    echo "   Current:  $VITE_API_URL"
-    echo "   Expected: $EXPECTED_URL"
-    echo ""
-    HAS_ERROR=true
-  fi
-
-  if [[ "$VITE_REALTIME" != "$EXPECTED_PROVIDER" ]]; then
-    echo "❌ ERROR: VITE_REALTIME_PROVIDER is not configured for Elixir backend"
-    echo "   Current:  $VITE_REALTIME"
-    echo "   Expected: $EXPECTED_PROVIDER"
-    echo ""
-    HAS_ERROR=true
-  fi
-
-  if [[ "$HAS_ERROR" == "true" ]]; then
-    echo "📝 To use Elixir backend, update {{ENV_FILE}} with:"
-    echo ""
-    echo "   VITE_API_URL=$EXPECTED_URL"
-    echo "   VITE_REALTIME_PROVIDER=$EXPECTED_PROVIDER"
-    echo ""
-    exit 1
-  fi
+  export VITE_REALTIME_PROVIDER=phoenix
+  export VITE_API_URL="http://localhost:${BACKEND_PORT}"
 
   # Start Docker Compose with Elixir profile
   {{COMPOSE}} --profile elixir up --build
@@ -117,8 +90,8 @@ start-elixir:
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
   echo "📱 Frontend:     http://localhost:$FRONTEND_PORT"
-  echo "🔌 Backend API:  http://localhost:$BACKEND_EX_PORT"
-  echo "📊 Oban UI:      http://localhost:$BACKEND_EX_PORT/oban"
+  echo "🔌 Backend API:  http://localhost:$BACKEND_PORT"
+  echo "📊 Oban UI:      http://localhost:$BACKEND_PORT/oban"
   echo "🏦 Provider Sim: http://localhost:$PROVIDER_PORT"
 
 # Stop all services (keeps volumes)
@@ -254,8 +227,8 @@ dev-elixir:
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
   echo "📱 Frontend:     http://localhost:5173"
-  echo "🔌 Backend API:  http://localhost:4000"
-  echo "📊 Oban UI:      http://localhost:4000/oban"
+  echo "🔌 Backend API:  http://localhost:3000"
+  echo "📊 Oban UI:      http://localhost:3000/oban"
   echo "🏦 Provider Sim: http://localhost:3001"
   echo ""
 

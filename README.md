@@ -1,172 +1,211 @@
 # eCredit
 
-Sistema de gestión de solicitudes de crédito. Monorepo con backend, frontend y simulador de proveedores bancarios.
+Sistema de gestión de solicitudes de crédito.
+Monorepo con backend, frontend y simulador de proveedores bancarios.
+
+---
 
 ## Stack
 
 | | Bun (default) | Elixir (alternativo) |
 |---|---|---|
-| **Runtime** | Bun | Erlang/OTP |
-| **Backend** | Hono + Drizzle + pg-boss | Phoenix + Ecto + Oban |
-| **Frontend** | React + Vite + TailwindCSS | ← mismo |
-| **Tiempo real** | Socket.IO | Phoenix Channels |
-| **Puerto** | 3000 | 4000 |
+| Runtime | Bun | Erlang/OTP |
+| Backend | Hono + Drizzle + pg-boss | Phoenix + Ecto + Oban |
+| Frontend | React + Vite + TailwindCSS | ← mismo |
+| Tiempo real | Socket.IO | Phoenix Channels |
+| Puerto | 3000 | 3000 |
 
-> Solo uno de los backends se ejecuta a la vez. Comparten la misma base de datos PostgreSQL.
+⚠️ Solo uno de los backends se ejecuta a la vez.
+Bun y Elixir no corren simultáneamente pero comparten la misma base de datos PostgreSQL.
+
+---
 
 ## Estructura
 
-```
 apps/
-├── backend/          # API REST con Bun (puerto 3000)
-├── backend-ex/       # API REST con Elixir/Phoenix (puerto 4000)
-├── frontend/         # SPA React (puerto 5173 dev / 8080 prod)
-└── provider-sim/     # Simulador de proveedores (puerto 3001)
-```
+├── backend/          # API REST con Bun (3000)
+├── backend-ex/       # API REST con Elixir/Phoenix (3000)
+├── frontend/         # SPA React (5173 dev / 8080 prod)
+└── provider-sim/     # Simulador de proveedores (3001)
+
+---
+
+## Requisitos
+
+Para despliegue local con Docker Compose:
+
+-  **[Docker](https://docs.docker.com/get-docker/)** (incluye Docker Compose v2)
+- **[just](https://github.com/casey/just#installation)** (o `mise install just`)
 
 ---
 
 ## Variables de Entorno
 
-Hay dos niveles de `.env`:
+Existen dos niveles de configuración:
 
 | Archivo | Propósito |
-|---------|-----------|
-| `.env` (raíz) | Docker Compose — puertos, DB, Redis, API URLs |
-| `apps/*/.env` | Desarrollo local sin Docker — config específica por app |
+|-------|-----------|
+| .env (raíz) | Docker Compose / despliegue local |
+| apps/*/.env | Desarrollo local (por aplicación) |
 
-Para empezar, solo necesitas el de la raíz:
+### .env (raíz)
 
-```bash
+Es el único archivo requerido para usar Docker Compose:
+
 cp .env.example .env
-```
 
-El `.env` viene preconfigurado para el backend **Bun**. Para usar **Elixir**, cambia estas dos líneas:
+Este archivo define:
+- Puertos
+- Base de datos
+- Redis
+- URLs del backend
+- Variables VITE_* usadas en el build del frontend
 
-```bash
-VITE_API_URL=http://localhost:4000
-VITE_REALTIME_PROVIDER=phoenix
-```
+El .env viene preconfigurado para Bun.
 
 ---
 
 ## Despliegue Local con Docker Compose
 
-> Requiere [Docker](https://docs.docker.com/get-docker/) y [just](https://github.com/casey/just#installation) (o `mise install just`).
+El frontend se construye en tiempo de build,
+por lo que las variables VITE_* deben existir
+antes de levantar los contenedores.
 
-### Con Bun (default)
-
-```bash
-just start
-```
-
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:8080 |
-| Backend API | http://localhost:3000 |
-| API Docs | http://localhost:3000/docs |
-| Provider Sim | http://localhost:3001 |
-
-### Con Elixir
-
-Antes, edita `.env`:
-```bash
-VITE_API_URL=http://localhost:4000
-VITE_REALTIME_PROVIDER=phoenix
-```
-
-Luego:
-```bash
-just start-elixir
-```
-
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:4000 |
-| Oban Dashboard | http://localhost:4000/oban |
-| Provider Sim | http://localhost:3001 |
-
-### Comandos Docker
-
-```bash
-just down              # Detener servicios
-just clean             # Detener y limpiar volumes
-just logs backend      # Ver logs de un servicio
-just ps                # Estado de servicios
-just db-shell          # Shell de PostgreSQL
-```
+Aunque Esto lo gestiona automáticamente just.
 
 ---
 
-## Credenciales de Prueba
+### Bun (default)
 
-```
-Email: admin1@ecredit.com
-Pass:  admin123456
-```
+just start
 
-### Usuarios de prueba para solicitudes
+Internamente:
+- Activa el profile bun
+- Exporta:
+  - VITE_REALTIME_PROVIDER=socketio
+  - VITE_API_URL=http://localhost:3000
 
-**Mexico (MX)**
+Servicios:
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:3000
+- API Docs: http://localhost:3000/docs
+- Provider Sim: http://localhost:3001
 
-| CURP | Score | Resultado |
-|------|-------|-----------|
-| `GOMC860101HDFRRA09` | 750 | ✅ Aprobado |
-| `BAPC901215MDFRRS03` | 450 | ❌ Rechazado |
+---
 
-**Colombia (CO)**
+### Elixir
 
-| Cédula | Score | Resultado |
-|--------|-------|-----------|
-| `1234567890` | 680 | ✅ Aprobado |
-| `9876543210` | 400 | ❌ Rechazado |
+just start-elixir
+
+Internamente:
+- Activa el profile elixir
+- Exporta automáticamente:
+  - VITE_REALTIME_PROVIDER=phoenix
+  - VITE_API_URL=http://localhost:3000
+
+Servicios:
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:3000
+- Oban Dashboard: http://localhost:3000/oban
+- Provider Sim: http://localhost:3001
+
+⚠️ No es necesario editar .env manualmente para cambiar de backend.
+
+---
+
+## Comandos Docker
+
+just down        — Detener servicios  
+just clean       — Detener y limpiar volumes  
+just logs <svc>  — Ver logs  
+just ps          — Estado de servicios  
+just db-shell    — Shell de PostgreSQL  
+
+---
+
+## Credenciales de Prueba  (Tanto desplegado como desarrollo)
+
+Email: admin1@ecredit.com  
+Pass:  admin123456  
+
+Email: admin2@ecredit.com
+Pass:  admin123456  
+
+---
+
+## Usuarios de Prueba  (Tanto desplegado como desarrollo)
+
+### México (MX)
+
+CURP | Score | Resultado
+GOMC860101HDFRRA09 | 750 | Aprobado
+BAPC901215MDFRRS03 | 450 | Rechazado
+
+### Colombia (CO)
+
+Cédula | Score | Resultado
+1234567890 | 680 | Aprobado
+9876543210 | 400 | Rechazado
 
 ---
 
 ## Desarrollo Local
 
-Para desarrollo necesitas Docker solo para la infraestructura (DB, Redis). Las apps corren directamente en tu máquina.
+En desarrollo:
 
-### Con Bun
+- Docker se usa solo para infraestructura
+- Las apps corren localmente
+- Las variables de entorno son por aplicación (mira los .env.example)
 
-```bash
+apps/backend/.env  
+apps/backend-ex/.env  
+apps/frontend/.env  
+apps/provider-sim/.env  
+
+---
+
+### Desarrollo con Bun
+
 just dev
-```
 
-Esto levanta PostgreSQL + Redis con Docker y arranca backend, frontend y provider-sim en paralelo.
+Levanta:
+- PostgreSQL + Redis
+- Backend Bun
+- Frontend
+- Provider simulator
 
-### Con Elixir
+---
 
-```bash
+### Desarrollo con Elixir
+
 just dev-elixir
-```
 
-Levanta PostgreSQL con Docker y arranca backend-ex, frontend y provider-sim.
+Levanta:
+- PostgreSQL
+- Backend Elixir
+- Frontend
+- Provider simulator
 
-> **Primera vez con Elixir?** Necesitas instalar dependencias y configurar la DB:
-> ```bash
-> cd apps/backend-ex
-> mix deps.get
-> mix ecto.setup    # create + migrate + seed
-> cd ../..
-> just dev-elixir
-> ```
+✔ No requiere comandos adicionales  
+✔ No requiere setear variables manualmente  
+✔ Funciona directamente si Elixir está instalado  
 
-### Guías detalladas por app
-
-Cada aplicación tiene su propio README con documentación específica de desarrollo:
-
-- [Backend Bun](apps/backend/README.md) — Hono, Drizzle, pg-boss, Socket.IO
-- [Backend Elixir](apps/backend-ex/README.md) — Phoenix, Ecto, Oban, Channels
-- [Frontend](apps/frontend/README.md) — React, Vite, TailwindCSS
-- [Provider Simulator](apps/provider-sim/README.md)
+just dev-elixir debe funcionar out-of-the-box.
 
 ---
 
 ## Documentación
 
-- [MVP y Visión del Producto](docs/mvp.md)
-- [Arquitectura](docs/architecture.md)
-- [Evaluación de Riesgo](docs/evaluation.md)
-- [Migración entre Backends](docs/backend-migration.md)
+docs/mvp.md  
+docs/architecture.md  
+docs/evaluation.md  
+docs/backend-migration.md  
+
+---
+
+## READMEs por aplicación
+
+apps/backend/README.md  
+apps/backend-ex/README.md  
+apps/frontend/README.md  
+apps/provider-sim/README.md

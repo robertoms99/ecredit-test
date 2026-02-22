@@ -266,8 +266,8 @@ docker compose --env-file .env.docker logs -f backend
 | Servicio | URL |
 |----------|-----|
 | Frontend | http://localhost:5173 |
-| Backend | http://localhost:4000 |
-| Oban UI | http://localhost:4000/oban |
+| Backend | http://localhost:3000 |
+| Oban UI | http://localhost:3000/oban |
 | Provider Sim | http://localhost:3001 |
 
 ## 🧪 Testing
@@ -362,8 +362,7 @@ npm run preview
 
 ```bash
 # Encontrar proceso
-lsof -i :3000  # Para Bun
-lsof -i :4000  # Para Elixir
+lsof -i :3000  # Para Bun y elixir
 lsof -i :5173  # Para Frontend
 
 # Matar proceso

@@ -50,9 +50,6 @@ WORKDIR /app
 # Copy release from build stage
 COPY --from=build /app/_build/prod/rel/ecredit ./
 
-COPY docker-entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-RUN chown -R app:app /app /entrypoint.sh
 
 # Change ownership
 RUN chown -R app:app /app
@@ -61,7 +58,7 @@ RUN chown -R app:app /app
 USER app
 
 # Expose port
-EXPOSE 4000
+EXPOSE 3000
 
 # Set entrypoint
-ENTRYPOINT [ "/entrypoint.sh" ]
+CMD [ "bin/ecredit", "start" ]

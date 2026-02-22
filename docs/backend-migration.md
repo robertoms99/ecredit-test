@@ -8,7 +8,7 @@ Esta guía explica cómo cambiar del backend de Bun al de Elixir/Phoenix (o vice
 |---------|-----|--------|
 | Instalación | `bun install` | `mix deps.get` |
 | Desarrollo | `bun dev` | `mix phx.server` |
-| Puerto | 3000 | 4000 |
+| Puerto | 3000 | 3000 |
 | DB | PostgreSQL + Redis | PostgreSQL (sin Redis) |
 | Migraciones | `bun run db:migrate` | `mix ecto.migrate` |
 
@@ -40,7 +40,7 @@ npm run dev
 En `apps/frontend/.env.local`:
 
 ```bash
-VITE_API_URL=http://localhost:4000
+VITE_API_URL=http://localhost:3000
 ```
 
 Reiniciar frontend si es necesario.
@@ -58,7 +58,7 @@ mix ecto.migrate
 mix run priv/repo/seeds.exs
 ```
 
-**Listo.** El frontend debería conectarse a `http://localhost:4000`.
+**Listo.** El frontend debería conectarse a `http://localhost:3000`.
 
 ### De Elixir a Bun
 
@@ -145,7 +145,7 @@ backend-ex:
     context: ./apps/backend-ex
     dockerfile: Dockerfile
   ports:
-    - "4000:4000"
+    - "3000:3000"
   environment:
     MIX_ENV: prod
     DATABASE_URL: ecto://postgres:ecredit123@db:5432/ecredit
@@ -181,7 +181,7 @@ ARG VITE_API_URL=http://backend:3000
 A:
 
 ```dockerfile
-ARG VITE_API_URL=http://backend-ex:4000
+ARG VITE_API_URL=http://backend-ex:3000
 ```
 
 #### Paso 5: Levantar servicios
@@ -281,17 +281,13 @@ docker compose --env-file .env.docker up -d db
 cd apps/backend-ex
 mix ecto.create
 mix ecto.migrate
-```
 
-### Error: "Port 3000/4000 already in use"
-
-```bash
 # Bun
 lsof -i :3000
 kill -9 <PID>
 
 # Elixir
-lsof -i :4000
+lsof -i :3000
 kill -9 <PID>
 ```
 

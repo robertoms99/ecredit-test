@@ -28,7 +28,7 @@ mix ecto.setup
 mix phx.server
 ```
 
-El servidor inicia en http://localhost:4000
+El servidor inicia en http://localhost:3000
 
 ## Arquitectura
 
@@ -53,7 +53,7 @@ lib/
 
 ```bash
 DATABASE_URL=ecto://test:test@localhost:5432/test_db
-PORT=4000
+PORT=3000
 FRONTEND_URL=http://localhost:5173
 MEXICO_PROVIDER_URL=http://localhost:3001/providers/mx
 COLOMBIA_PROVIDER_URL=http://localhost:3001/providers/co
@@ -126,18 +126,18 @@ Usa JWT Bearer tokens:
 
 ```bash
 # Login
-curl -X POST http://localhost:4000/api/auth/login \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin1@ecredit.com","password":"admin123456"}'
 
 # Usar token en peticiones
-curl http://localhost:4000/api/credit-requests \
+curl http://localhost:3000/api/credit-requests \
   -H "Authorization: Bearer <token>"
 ```
 
 ## WebSockets (Phoenix Channels)
 
-Endpoint: `ws://localhost:4000/ws`
+Endpoint: `ws://localhost:3000/ws`
 
 | Canal | Descripción |
 |-------|-------------|
@@ -159,7 +159,7 @@ channel.join();
 
 ## Oban (Jobs)
 
-Dashboard disponible en http://localhost:4000/oban
+Dashboard disponible en http://localhost:3000/oban
 
 Workers implementados:
 - **StatusTransitionWorker** - Procesa transiciones automáticas de estado (solicitar datos bancarios, evaluar crédito)
@@ -173,7 +173,7 @@ docker build -t ecredit-backend-ex:latest .
 # Run (requiere DB)
 docker run -d \
   --name ecredit-backend-ex \
-  -p 4000:4000 \
+  -p 3000:3000 \
   -e DATABASE_URL="ecto://user:pass@host:5432/ecredit" \
   -e JWT_SECRET="your-secret-key" \
   -e SECRET_KEY_BASE="$(mix phx.gen.secret)" \
