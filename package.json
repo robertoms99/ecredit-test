@@ -13,7 +13,9 @@
   ],
   "scripts": {
     "dev": "bun run dev:provider & bun run dev:frontend & bun run dev:backend",
+    "dev:elixir": "bun run dev:provider & bun run dev:frontend & bun run dev:backend-ex",
     "dev:backend": "cd apps/backend && bun dev",
+    "dev:backend-ex": "cd apps/backend-ex && mix setup && mix phx.server",
     "dev:frontend": "cd apps/frontend && bun dev",
     "dev:provider": "cd apps/provider-sim && bun dev",
     "build": "bun run build:backend && bun run build:frontend && bun run build:provider",

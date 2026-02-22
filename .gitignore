@@ -18,8 +18,7 @@ dist/
 .env.*.local
 apps/**/.env
 !apps/**/.env.example
-.env.docker
-!.env.docker.example
+!.env.example
 
 # IDE
 .vscode/

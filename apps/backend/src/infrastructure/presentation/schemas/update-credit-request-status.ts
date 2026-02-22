@@ -7,7 +7,7 @@ export const updateCreditRequestStatusParamsSchema = z.object({
 });
 
 export const updateCreditRequestStatusBodySchema = z.object({
-  status: z.string().min(1, "El estado id es requerido").trim(),
+  status: z.string().min(1, "El estado es requerido").trim(),
   reason: z.string().max(1000, "La razón no debe exceder 1000 caracteres").trim().optional(),
 });
 

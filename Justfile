@@ -1,80 +1,236 @@
-# Usage examples:
-#   just up            # start services in background
-#   just down          # stop services
-#   just clean         # stop and remove volumes
-#   just build         # build images
-#   just ps            # show service status
-#   just logs backend  # follow logs for a service (db, backend, frontend, provider-sim, redis)
-#   just shell backend # open a shell in a running container
-#   just db-shell      # open psql in the Postgres container
+# eCredit Justfile
+#
+# Docker Compose (production-like):
+#   just start          # Deploy with Bun backend (Socket.IO)
+#   just start-elixir   # Deploy with Elixir backend (Phoenix Channels)
+#   just down           # Stop all services
+#   just clean          # Stop services and remove volumes
+#   just logs <service> # Follow logs (backend, frontend, db, redis, provider-sim)
+#   just ps             # Show service status
+#
+# Local Development:
+#   just dev            # Dev mode with Bun backend
+#   just dev-elixir     # Dev mode with Elixir backend
 
 set shell := ["bash", "-cu"]
 
-ENV_FILE := ".env.docker"
+ENV_FILE := ".env"
 COMPOSE := "docker compose"
 
 default:
-  @echo "Available tasks:"
+  @echo "🚀 eCredit - Available Commands:"
+  @echo ""
   @just --list
 
+# Start eCredit with Bun backend (Socket.IO)
 start:
-  @echo "🚀 Starting eCredit..."
-  {{COMPOSE}} --env-file {{ENV_FILE}} build
-  {{COMPOSE}} --env-file {{ENV_FILE}} up
-  @echo "✅ Ready frontend app at http://localhost:8080"
+  #!/usr/bin/env bash
+  set -euo pipefail
 
-up:
-  # Starts all services in background
-  {{COMPOSE}} up -d
+  echo "🚀 Starting eCredit with Bun backend..."
+  echo ""
 
+  # Create .env if missing
+  if [ ! -f "{{ENV_FILE}}" ]; then
+    cp .env.example "{{ENV_FILE}}"
+    echo "✅ Created {{ENV_FILE}} from .env.example"
+    echo ""
+  fi
+
+  # Extract ports from .env
+  FRONTEND_PORT=$(grep "^FRONTEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "5173")
+  BACKEND_PORT=$(grep "^BACKEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3000")
+  PROVIDER_PORT=$(grep "^PROVIDER_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3001")
+
+  export VITE_REALTIME_PROVIDER=socketio
+  export VITE_API_URL="http://localhost:${BACKEND_PORT}"
+
+  # Start Docker Compose
+  {{COMPOSE}} --profile bun up --build
+
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "✅ eCredit System Ready! (Bun + Socket.IO)"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "📱 Frontend:     http://localhost:$FRONTEND_PORT"
+  echo "🔌 Backend API:  http://localhost:$BACKEND_PORT"
+  echo "🏦 Provider Sim: http://localhost:$PROVIDER_PORT"
+
+
+# Start eCredit with Elixir backend (Phoenix Channels)
+start-elixir:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  echo "🚀 Starting eCredit with Elixir backend..."
+  echo ""
+
+  # Create .env if missing
+  if [ ! -f "{{ENV_FILE}}" ]; then
+    cp .env.example "{{ENV_FILE}}"
+    echo "✅ Created {{ENV_FILE}} from .env.example"
+    echo ""
+  fi
+
+  # Extract configuration from .env
+  FRONTEND_PORT=$(grep "^FRONTEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "5173")
+  BACKEND_PORT=$(grep "^BACKEND_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3000")
+  PROVIDER_PORT=$(grep "^PROVIDER_PORT=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "3001")
+
+  export VITE_REALTIME_PROVIDER=phoenix
+  export VITE_API_URL="http://localhost:${BACKEND_PORT}"
+
+  # Start Docker Compose with Elixir profile
+  {{COMPOSE}} --profile elixir up --build
+
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "✅ eCredit System Ready! (Elixir + Phoenix)"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "📱 Frontend:     http://localhost:$FRONTEND_PORT"
+  echo "🔌 Backend API:  http://localhost:$BACKEND_PORT"
+  echo "📊 Oban UI:      http://localhost:$BACKEND_PORT/oban"
+  echo "🏦 Provider Sim: http://localhost:$PROVIDER_PORT"
+
+# Stop all services (keeps volumes)
 down:
-  # Stops services (keeps volumes)
   {{COMPOSE}} down
 
+# Stop services and remove volumes
 clean:
-  # Stops services and removes volumes
   {{COMPOSE}} down -v
+  @echo "✅ All services stopped and volumes removed"
 
+# Build Docker images
 build:
-  # Builds images defined in docker-compose.yml
   {{COMPOSE}} build
 
+# Rebuild and restart services
 rebuild:
-  # Builds images then starts services
   {{COMPOSE}} build && {{COMPOSE}} up -d
+  @echo "✅ Services rebuilt and restarted"
 
+# Show service status
 ps:
-  # Shows service status
   {{COMPOSE}} ps
 
+# Follow logs for a specific service
 logs SERVICE:
-  # Follows logs of a specific service (db, backend, frontend, provider-sim, redis)
   {{COMPOSE}} logs -f {{SERVICE}}
 
-shell SERVICE:
-  # Opens an interactive shell in a running container by service name
-  docker exec -it $( {{COMPOSE}} ps --services --format json | jq -r '.[]' | grep -E "^{{SERVICE}}$" >/dev/null && {{COMPOSE}} ps -q {{SERVICE}} ) sh || true
-
+# Backend logs (convenience)
 backend-logs:
-  # Convenience: follow backend service logs
   {{COMPOSE}} logs -f backend
 
+# Frontend logs (convenience)
 frontend-logs:
-  # Convenience: follow frontend service logs
   {{COMPOSE}} logs -f frontend
 
+# Provider simulator logs (convenience)
 provider-logs:
-  # Convenience: follow provider-sim service logs
   {{COMPOSE}} logs -f provider-sim
 
+# Redis logs (convenience)
 redis-logs:
-  # Convenience: follow redis service logs
   {{COMPOSE}} logs -f redis
 
+# Database logs (convenience)
 db-logs:
-  # Convenience: follow db service logs
   {{COMPOSE}} logs -f db
 
+# Open PostgreSQL shell
 db-shell:
-  # Open psql inside the Postgres container (uses env defaults if not set)
-  docker exec -it ecredit-db sh -lc 'psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ecredit_dev}'
+  #!/usr/bin/env bash
+  POSTGRES_USER=$(grep "^POSTGRES_USER=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "postgres")
+  POSTGRES_DB=$(grep "^POSTGRES_DB=" "{{ENV_FILE}}" | cut -d'=' -f2 || echo "ecredit_dev")
+  docker exec -it ecredit-db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+
+# Open shell in a running container
+shell SERVICE:
+  docker exec -it ecredit-{{SERVICE}} sh
+
+# ============================================================================
+# Local Development (requires Docker for DB/Redis only)
+# ============================================================================
+
+# Start local dev with Bun backend (DB + Redis via Docker, apps locally)
+dev:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  echo "🛠️  Starting eCredit in development mode (Bun)..."
+  echo ""
+
+  # Create .env if missing
+  if [ ! -f "{{ENV_FILE}}" ]; then
+    cp .env.example "{{ENV_FILE}}"
+    echo "✅ Created {{ENV_FILE}} from .env.example"
+    echo ""
+  fi
+
+  # Start infrastructure
+  echo "📦 Starting PostgreSQL and Redis..."
+  {{COMPOSE}} up -d db redis
+
+  # Wait for DB
+  echo "⏳ Waiting for database..."
+  until docker exec ecredit-db pg_isready -U $(grep "^POSTGRES_USER=" "{{ENV_FILE}}" | cut -d'=' -f2) -q 2>/dev/null; do
+    sleep 1
+  done
+  echo "✅ Database ready"
+  echo ""
+
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "🛠️  Dev mode ready! Starting all services..."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "📱 Frontend:     http://localhost:5173"
+  echo "🔌 Backend API:  http://localhost:3000"
+  echo "📄 Backend Docs: http://localhost:3000/docs"
+  echo "🏦 Provider Sim: http://localhost:3001"
+  echo ""
+
+  # Run all dev processes
+  bun run dev
+
+# Start local dev with Elixir backend (DB via Docker, apps locally)
+dev-elixir:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  echo "🛠️  Starting eCredit in development mode (Elixir)..."
+  echo ""
+
+  # Create .env if missing
+  if [ ! -f "{{ENV_FILE}}" ]; then
+    cp .env.example "{{ENV_FILE}}"
+    echo "✅ Created {{ENV_FILE}} from .env.example"
+    echo ""
+  fi
+
+  # Start infrastructure
+  echo "📦 Starting PostgreSQL..."
+  {{COMPOSE}} up -d db
+
+  # Wait for DB
+  echo "⏳ Waiting for database..."
+  until docker exec ecredit-db pg_isready -U $(grep "^POSTGRES_USER=" "{{ENV_FILE}}" | cut -d'=' -f2) -q 2>/dev/null; do
+    sleep 1
+  done
+  echo "✅ Database ready"
+  echo ""
+
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "🛠️  Dev mode ready! Starting all services..."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "📱 Frontend:     http://localhost:5173"
+  echo "🔌 Backend API:  http://localhost:3000"
+  echo "📊 Oban UI:      http://localhost:3000/oban"
+  echo "🏦 Provider Sim: http://localhost:3001"
+  echo ""
+
+  # Run all dev processes
+  bun run dev:elixir

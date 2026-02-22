@@ -1,59 +1,128 @@
-import { useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { CreditRequestUpdateEvent } from '../types';
+import {
+  createRealtimeClient,
+  getRealtimeApiUrl,
+  type RealtimeClient,
+  type ConnectionState,
+  REALTIME_EVENTS
+} from '../lib/realtime';
+import { useAuth } from './useAuth';
 
-// Use environment variable for Socket.IO URL
-const SOCKET_URL = import.meta.env.VITE_API_URL || window.location.origin;
-
+/**
+ * Hook for managing the realtime connection.
+ *
+ * Automatically selects Socket.IO or Phoenix Channels based on the
+ * VITE_REALTIME_PROVIDER environment variable.
+ */
 export function useSocket() {
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
+  const clientRef = useRef<RealtimeClient | null>(null);
+  const {token } = useAuth()
 
   useEffect(() => {
-    console.log(`🔌 Connecting to Socket.IO server at: ${SOCKET_URL}`);
-    
-    const socketInstance = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
+    const apiUrl = getRealtimeApiUrl();
+    console.log(`🔌 Connecting to realtime server at: ${apiUrl}`);
+
+    const client = createRealtimeClient({
+      url: apiUrl,
+      token,
+      reconnect: {
+        enabled: true,
+        maxAttempts: 5,
+        delay: 1000,
+      },
     });
 
-    socketInstance.on('connect', () => {
-      console.log('✅ Socket.IO connected');
-      setIsConnected(true);
+    clientRef.current = client;
+
+    // Subscribe to state changes
+    const unsubscribeState = client.onStateChange((state) => {
+      setConnectionState(state);
+      setIsConnected(state === 'connected');
     });
 
-    socketInstance.on('disconnect', () => {
-      console.log('❌ Socket.IO disconnected');
-      setIsConnected(false);
+    // Connect to the server
+    client.connect().catch((error) => {
+      console.error('Failed to connect to realtime server:', error);
     });
-
-    socketInstance.on('connect_error', (error) => {
-      console.error('Socket.IO connection error:', error);
-    });
-
-    setSocket(socketInstance);
 
     return () => {
-      socketInstance.disconnect();
+      unsubscribeState();
+      client.disconnect();
+      clientRef.current = null;
     };
   }, []);
 
-  return { socket, isConnected };
+  return {
+    client: clientRef.current,
+    isConnected,
+    connectionState,
+  };
 }
 
+/**
+ * Hook for subscribing to credit request updates.
+ *
+ * Works with both Socket.IO and Phoenix Channels backends.
+ *
+ * @param onUpdate - Callback function when a credit request is updated
+ */
 export function useCreditRequestUpdates(
   onUpdate: (event: CreditRequestUpdateEvent) => void
 ) {
-  const { socket, isConnected } = useSocket();
+  const { client, isConnected, connectionState } = useSocket();
+
+  // Memoize the callback to prevent unnecessary re-subscriptions
+  const stableOnUpdate = useCallback(onUpdate, [onUpdate]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!client) return;
 
-    socket.on('credit-request-updated', onUpdate);
+    const unsubscribe = client.on<CreditRequestUpdateEvent>(
+      REALTIME_EVENTS.CREDIT_REQUEST_UPDATED,
+      stableOnUpdate
+    );
 
     return () => {
-      socket.off('credit-request-updated', onUpdate);
+      unsubscribe();
     };
-  }, [socket, onUpdate]);
+  }, [client, stableOnUpdate]);
 
-  return { isConnected };
+  return { isConnected, connectionState };
+}
+
+/**
+ * Hook for joining a specific channel/room.
+ *
+ * For Phoenix, this joins a channel. For Socket.IO, this is a no-op
+ * (Socket.IO handles rooms server-side).
+ *
+ * @param channelName - Name of the channel to join
+ */
+export function useChannel(channelName: string) {
+  const { client, isConnected, connectionState } = useSocket();
+  const [joined, setJoined] = useState(false);
+
+  useEffect(() => {
+    if (!client || !isConnected) {
+      setJoined(false);
+      return;
+    }
+
+    client.join(channelName)
+      .then(() => setJoined(true))
+      .catch((error) => {
+        console.error(`Failed to join channel ${channelName}:`, error);
+        setJoined(false);
+      });
+
+    return () => {
+      client.leave(channelName);
+      setJoined(false);
+    };
+  }, [client, isConnected, channelName]);
+
+  return { joined, isConnected, connectionState };
 }
